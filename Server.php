@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . "/../CPE/data/framework/library/Validator.php");
+require_once(__DIR__ . "/framework/library/Validator.php");
 require_once(__DIR__ . "/ServerMain.php");
 require_once(__DIR__ . "/ServerConfig.php");
 
