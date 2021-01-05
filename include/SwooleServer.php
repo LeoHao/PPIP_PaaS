@@ -1,84 +1,70 @@
 <?php
 /**
- * @Filename         : ServerMain.php
+ * @Filename         : SwooleServer.php
  * @Author           : LeoHao
  * @Email            : blueseamyheart@hotmail.com
  * @Last modified    : 2020-12-31 12:21
  * @Description      : this is base on Swoole tcp server
 **/
 
-require_once(__DIR__ . "/ServerConfig.php");
-
-class ServerMain {
+class SwooleServer {
 
     /**
-     * @var \swoole_server
+     * @var $server
      */
     public $server ;
 
     /**
-     * 配置项
      * @var $config array
      */
     public $config ;
 
     /**
-     * @var \Server
+     * @var $_worker
      */
     public static $_worker ;
 
     /**
-     * 存储pid文件的位置
+     * pid path
      */
     public $pidFile ;
 
     /**
-     * worker 进程的数量
      * @var $worker_num
      */
     public $worker_num;
 
     /**
-     * 当前进程的worker_id
      * @var $worker_id
      */
     public $worker_id ;
 
     /**
-     * @var ServerConfig 
-     * 
-     *  require swoole server config
+     * require swoole server config
+     * @var $server_config 
      */
     public $server_config;
 
     /**
-     * task 进程数 + worker 进程数 = 总的服务进程
-     * 给其他的进程发送消息:
-     * for($i = 0 ; $i < $count ; $i ++) {
-     *    if($i == $this->worker_id)  continue;表示是该进程
-     *    $this->server->sendMessage($i , $data);
-     * }
-     * task 进程的数量
      * @var $task_num
      */
     public $task_num ;
 
     /**
      * Server constructor.
-     *
      */
     public function __construct()
     {
         $this->getConfig();
     }
 
-    public function test_conn()
+    public function connect()
     {
         $this->server = new swoole_server($this->config ['host'] , $this->config ['port']);
         $this->server_config = new ServerConfig();
         $this->serverConfig();
         $this->createTable();
-        self::$_worker = & $this; // 引用
+        self::$_worker = & $this;
         self::main();
     }
 
@@ -114,7 +100,7 @@ class ServerMain {
     {
         $this->setProcessName('SwooleMaster');
         $debug = debug_backtrace();
-        $this->pidFile = __DIR__ . "/temp/" . str_replace("/" , "_" , $debug[count($debug) - 1] ["file"] . ".pid" );
+        $this->pidFile =  __DIR__ . "/temp/" . str_replace("/" , "_" , $debug[count($debug) - 1] ["file"] . ".pid" );
         $pid = [$server->master_pid , $server->manager_pid];
         file_put_contents($this->pidFile , implode(",", $pid));
     }
@@ -236,6 +222,7 @@ class ServerMain {
      */
     public function onSwooleConnect($server ,$fd ,$reactorId)
     {
+        Logger::trace($fd . " connected ", 'swoole');
         echo "#connected\n";
     }
 

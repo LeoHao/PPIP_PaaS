@@ -1,9 +1,16 @@
 <?php
-require_once(__DIR__ . "/framework/library/Validator.php");
-require_once(__DIR__ . "/ServerMain.php");
-require_once(__DIR__ . "/ServerConfig.php");
+/**
+ * @Filename         : TcpServer.php
+ * @Author           : LeoHao
+ * @Email            : blueseamyheart@hotmail.com
+ * @Last modified    : 2020-12-31 12:21
+ * @Description      : this is base on Swoole tcp server
+ **/
 
-class Server extends ServerMain{
+require_once(dirname(dirname(__FILE__)) . "/bin/Skel.php");
+require_once(dirname(dirname(__FILE__)) . "/include/SwooleServer.php");
+
+class TcpServer extends SwooleServer{
 
     /**
      * 获取配置文件
@@ -77,6 +84,6 @@ class Server extends ServerMain{
         $this->table->create();
     }
 }
-$swoole_tcp_server = new Server();
-$swoole_tcp_server->test_conn();
+$swoole_tcp_server = new TcpServer();
+$swoole_tcp_server->connect();
 ?>
