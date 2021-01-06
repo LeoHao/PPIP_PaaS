@@ -46,6 +46,7 @@ class ServerConfig {
         'worker_num' => 4,
         'task_worker_num' => 20,
         'dispatch_mode' => 2,
+        'log_file' => ROOT_PATH . '/logs/swoole/swoole.log'
     );
     
     public $swoole_base = array(
@@ -67,5 +68,8 @@ class ServerConfig {
         "receive" => "onSwooleReceive", //接收到数据时回调此函数，发生在worker进程中
         "close" => "onSwooleClose" //CP客户端连接关闭后，在worker进程中回调此函数
     );
+
+    const SERVER_AUTH_NAME = 'SaaS';
+    const SAAS_SERVER_IP = '192.168.3.87';
 }
 ?>

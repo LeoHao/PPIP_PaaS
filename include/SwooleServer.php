@@ -222,7 +222,8 @@ class SwooleServer {
      */
     public function onSwooleConnect($server ,$fd ,$reactorId)
     {
-        Logger::trace($fd . " connected ", 'swoole');
+        Logger::trace("newconnect fd:" . $fd . " | status:online | reactorid:" . $reactorId, 'swoole');
+        swoole_error_log(SWOOLE_TRACE_CONN, 'test');
         echo "#connected\n";
     }
 

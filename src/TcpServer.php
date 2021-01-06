@@ -52,20 +52,24 @@ class TcpServer extends SwooleServer{
     public function onSwooleReceive($server,$fd,$reactorId, $data)
     {
         $data = json_decode($data, true);
-        if (isset($data['auth_name']) &&$data['auth_name'] == 'SaaS' && $data['ip'] == '192.168.3.87') {
+        if (isset($data['auth_name']) &&$data['auth_name'] == ServerConfig::SERVER_AUTH_NAME && $data['ip'] == ServerConfig::SAAS_SERVER_IP) {
             if ($data['key'] && $data['key'] == '1234567890') {
                 $cpe_ip = $data['cpeip'];
                 $cpe_info = $this->table->get($cpe_ip);
                 $server->send($cpe_info['fd'] , json_encode(array('action' => $data['action'])));
+
+                Logger::trace("SaaS connect fd:" . $fd . " | status:online | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " | response_ip:" . $data['cpeip'] . " | action:" . $data['action'], 'swoole');
             }
         } elseif (isset($data['exec_result'])){
             echo "# " . $data['exec_result'] . "\n";
+            Logger::trace("CPE connect fd:" . $fd . " | status:exec_done | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " exec_result:" . $data['exec_result'], 'swoole');
         } else {
             $ip = $data['ip'];
             $exist = $this->table->exist($fd);
             if (!$exist) {
                 $data = ['fd'=>$fd, 'ip'=>$ip];
                 $this->table->set($ip, $data);
+                Logger::trace("CPE connect fd:" . $fd . " | status:waiting | reactorid:" . $reactorId . " | request_ip:" . $data['ip'], 'swoole');
             }
         }
     }

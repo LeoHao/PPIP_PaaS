@@ -1,12 +1,11 @@
 <?php
 /**
- * Skel
- *
- *     作者: 石瑞 (shirui@comsenz.com)
- * 创建时间: 2010-07-05 10:03:00
- * 修改记录:
- *
- * $Id$
+ * Config
+ * @Filename         : Skel.php
+ * @Author           : LeoHao
+ * @Email            : blueseamyheart@hotmail.com
+ * @Last modified    : 2021-1-3 22:25
+ * @Description      : autoloader
  */
 
 define('ROOT_PATH' , dirname(dirname(__FILE__)));
