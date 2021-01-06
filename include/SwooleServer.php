@@ -40,12 +40,6 @@ class SwooleServer {
     public $worker_id ;
 
     /**
-     * require swoole server config
-     * @var $server_config 
-     */
-    public $server_config;
-
-    /**
      * @var $task_num
      */
     public $task_num ;
@@ -58,21 +52,11 @@ class SwooleServer {
         $this->getConfig();
     }
 
-    public function connect()
-    {
-        $this->server = new swoole_server($this->config ['host'] , $this->config ['port']);
-        $this->server_config = new ServerConfig();
-        $this->serverConfig();
-        $this->createTable();
-        self::$_worker = & $this;
-        self::main();
-    }
-
     /**
      * get config
      */
     public function getConfig() {
-    
+
     }
 
     public function serverConfig()
@@ -80,10 +64,18 @@ class SwooleServer {
         $this->server->set($this->config['server']);
     }
 
+    public function connect()
+    {
+        $this->server = new swoole_server($this->config ['host'] , $this->config ['port']);
+        $this->serverConfig();
+        $this->createTable();
+        self::$_worker = & $this;
+        self::main();
+    }
+
     public function start()
     {
-        $server_function_map = $this->server_config->swoole_server_function_map;
-        foreach ($server_function_map as $swoole_func => $local_func) {
+        foreach (ServerConfig::$swoole_server_function_map as $swoole_func => $local_func) {
             $this->server->on($swoole_func,[$this , $local_func]);
         }
         $this->server->start();
@@ -283,6 +275,11 @@ class SwooleServer {
      */
     public function createTable()
     {
+        $this->table = new swoole_table(ServerConfig::$swoole_server_table['table_size']);
+        foreach (ServerConfig::$swoole_server_table['table_column'] as $param_name => $param_value) {
+            $this->table->column($param_name, $param_value['type'], $param_value['size']);
+        }
+        $this->table->create();
     }
 
     public function addTableColumn($fd, $data)

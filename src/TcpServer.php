@@ -18,14 +18,13 @@ class TcpServer extends SwooleServer{
      * @return array $config
      */
     public function getConfig() {
-        $this->server_config = new ServerConfig();
         $this->config = array();
         $this->config['server'] = array();
-        foreach ($this->server_config->swoole_server_tcp as $name => $value) {
+        $this->config['host'] = $this->getLocalIp();
+        $this->config['port'] = ServerConfig::SERVER_SWOOLE_PORT;
+        foreach (ServerConfig::$swoole_server_tcp as $name => $value) {
             $this->config['server'][$name] = $value;
         }
-        $this->config['host'] = $this->getLocalIp();
-        $this->config['port'] = $this->server_config->swoole_base['port'];
     }
 
     /**
@@ -67,25 +66,11 @@ class TcpServer extends SwooleServer{
             $ip = $data['ip'];
             $exist = $this->table->exist($fd);
             if (!$exist) {
-                $data = ['fd'=>$fd, 'ip'=>$ip];
-                $this->table->set($ip, $data);
-                Logger::trace("CPE connect fd:" . $fd . " | status:waiting | reactorid:" . $reactorId . " | request_ip:" . $data['ip'], 'swoole');
+                $redis_data = ['fd'=>$fd, 'ip'=>$ip];
+                $this->table->set($ip, $redis_data);
+                Logger::trace("CPE connect fd:" . $fd . " | status:waiting | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " | mac_address:" . $data['mac_address'], 'swoole');
             }
         }
-    }
-    
-    /**
-     * 创建swoole_table
-     */
-    public function createTable()
-    {
-        $this->table = new swoole_table($this->server_config->swoole_server_table['table_size']);
-        foreach ($this->server_config->swoole_server_table['table_column'] as $name => $value) {
-            $type = $value['type'];
-            $size = $value['size'];
-            $this->table->column($name, $type, $size);
-        }
-        $this->table->create();
     }
 }
 $swoole_tcp_server = new TcpServer();
