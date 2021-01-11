@@ -214,8 +214,15 @@ class SwooleServer {
      */
     public function onSwooleConnect($server ,$fd ,$reactorId)
     {
-        Logger::trace("newconnect fd:" . $fd . " | status:online | reactorid:" . $reactorId, 'swoole');
-        swoole_error_log(SWOOLE_TRACE_CONN, 'test');
+        $fd_info = $server->getClientInfo($fd);
+        $client_ip = $fd_info['remote_ip'];
+        $exist = $this->table->exist($fd);
+        if (!$exist) {
+            $redis_data = ['fd' => $fd, 'ip' => $client_ip];
+            $this->table->set($client_ip, $redis_data);
+            //Logger::trace("CPE connect fd:" . $fd . " | status:waiting | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " | mac_address:" . $data['mac_address'], 'swoole');
+            Logger::trace("newconnect fd:" . $fd . " | status:online | reactorid:" . $reactorId, 'swoole');
+        }
         echo "#connected\n";
     }
 
