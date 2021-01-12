@@ -74,6 +74,17 @@ class Skel {
             $allFiles = scandir($libraryPath);
             foreach ($allFiles as $singleFileName) {
                 if (strtolower(pathinfo($singleFileName, PATHINFO_EXTENSION)) != 'php') {
+                    if($singleFileName === '.' || $singleFileName === '..'){
+                        continue;
+                    } else {
+                            $secondPath = $libraryPath . $singleFileName . '/';
+                            $secondFiles = scandir($secondPath);
+                            foreach ($secondFiles as $fileName) {
+                                if (strtolower(pathinfo($fileName, PATHINFO_EXTENSION)) == 'php') {
+                                    include_once ($secondPath . $fileName);
+                                }
+                            }
+                    }
                     continue;
                 }
                 if (($libraryPath . $singleFileName) != $exist_file) {

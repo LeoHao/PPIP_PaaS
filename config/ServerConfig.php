@@ -8,52 +8,84 @@
  **/
 
 class ServerConfig {
-    public $swoole_server_table = array(
+
+    const CLIENT_FOR_PAAS = 'PaaS';
+
+    const CLIENT_FOR_SAAS = 'SaaS';
+
+    const CLIENT_FOR_CPE = 'Cpe';
+
+    const SNCODE_FOR_SAAS = 'this is saas sncode';
+
+    const SAAS_SERVER_IP = '192.168.3.87';
+
+    const SERVER_SWOOLE_PORT = '6001';
+
+    public static $swoole_server_table = array(
         'table_size' => 65536,
         'table_column' => array(
             'fd' => array(
                 'type' => swoole_table::TYPE_INT,
                 'size' => 8
             ),
-            'ip' => array(
-                'type' => swoole_table::TYPE_STRING,
-                'size' => 15
-            ),
-            'name' => array(
-                'type' => swoole_table::TYPE_STRING,
-                'size' => 255
-            ),
-            'action' => array(
-                'type' => swoole_table::TYPE_STRING,
-                'size' => 50
-            ),
-            'auth_name' => array(
-                'type' => swoole_table::TYPE_STRING,
-                'size' => 4
-            ),
-            'mac_address' => array(
-                'type' => swoole_table::TYPE_STRING,
-                'size' => 4
-            ),
-            'exec_result' => array(
+            'ClientType' => array(
                 'type' => swoole_table::TYPE_STRING,
                 'size' => 10
             ),
+            'Action' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 100
+            ),
+            'SecretKey' => array(
+                'type' => swoole_table::TYPE_INT,
+                'size' => 255
+            ),
+            'ClientIP' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 20
+            ),
+            'CpeIP' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 20
+            ),
+            'ClientMac' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 20
+            ),
+            'CpeMac' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 20
+            ),
+            'ClientStatus' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 255
+            ),
+            'ExecStatus' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 255
+            ),
+            'ExecExt' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 255
+            ),
+            'ActionExt' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 255
+            )
         )
     );
 
-    public $swoole_server_tcp = array(
-        'worker_num' => 4,
-        'task_worker_num' => 20,
+    public static $swoole_server_tcp = array(
+        'worker_num' => 10,
+        'task_worker_num' => 5,
         'dispatch_mode' => 2,
+        'heartbeat_check_interval' => 10,
+        'heartbeat_idle_time'      => 20,
+        'max_connection' => 500,
         'log_file' => ROOT_PATH . '/logs/swoole/swoole.log'
     );
-    
-    public $swoole_base = array(
-        'port' => 6001
-    );
 
-    public $swoole_server_function_map = array(
+    public static $swoole_server_function_map = array(
         "start" => "onSwooleStart", //Server启动在主进程的主线程回调此函数
         "shutDown" => "onSwooleShutDown", //在Server正常结束时发生
         "workerStart" => "onSwooleWorkerStart", //在Worker进程/Task进程启动时发生。这里创建的对象可以在进程生命周期内使用。
@@ -69,7 +101,15 @@ class ServerConfig {
         "close" => "onSwooleClose" //CP客户端连接关闭后，在worker进程中回调此函数
     );
 
-    const SERVER_AUTH_NAME = 'SaaS';
-    const SAAS_SERVER_IP = '192.168.3.87';
+    public static $server_own_action = array(
+        'plugins_network_special_add'
+    );
+
+    public static $cpe_own_action  = array(
+        'client_init',
+        'get_own_plugins',
+        'get_own_webside',
+        'get_own_node'
+    );
 }
 ?>

@@ -12,22 +12,22 @@ class SwooleServer {
     /**
      * @var $server
      */
-    public $server ;
+    public $server;
 
     /**
      * @var $config array
      */
-    public $config ;
+    public $config;
 
     /**
      * @var $_worker
      */
-    public static $_worker ;
+    public static $_worker;
 
     /**
      * pid path
      */
-    public $pidFile ;
+    public $pidFile;
 
     /**
      * @var $worker_num
@@ -37,18 +37,17 @@ class SwooleServer {
     /**
      * @var $worker_id
      */
-    public $worker_id ;
-
-    /**
-     * require swoole server config
-     * @var $server_config 
-     */
-    public $server_config;
+    public $worker_id;
 
     /**
      * @var $task_num
      */
-    public $task_num ;
+    public $task_num;
+
+    /**
+     * @var $db
+     */
+    public $db;
 
     /**
      * Server constructor.
@@ -56,23 +55,14 @@ class SwooleServer {
     public function __construct()
     {
         $this->getConfig();
-    }
-
-    public function connect()
-    {
-        $this->server = new swoole_server($this->config ['host'] , $this->config ['port']);
-        $this->server_config = new ServerConfig();
-        $this->serverConfig();
-        $this->createTable();
-        self::$_worker = & $this;
-        self::main();
+        $this->db = DB_Manager::connection('ppip');
     }
 
     /**
      * get config
      */
     public function getConfig() {
-    
+
     }
 
     public function serverConfig()
@@ -80,10 +70,18 @@ class SwooleServer {
         $this->server->set($this->config['server']);
     }
 
+    public function connect()
+    {
+        $this->server = new swoole_server($this->config ['host'] , $this->config ['port']);
+        $this->serverConfig();
+        $this->createTable();
+        self::$_worker = & $this;
+        self::main();
+    }
+
     public function start()
     {
-        $server_function_map = $this->server_config->swoole_server_function_map;
-        foreach ($server_function_map as $swoole_func => $local_func) {
+        foreach (ServerConfig::$swoole_server_function_map as $swoole_func => $local_func) {
             $this->server->on($swoole_func,[$this , $local_func]);
         }
         $this->server->start();
@@ -222,8 +220,14 @@ class SwooleServer {
      */
     public function onSwooleConnect($server ,$fd ,$reactorId)
     {
-        Logger::trace("newconnect fd:" . $fd . " | status:online | reactorid:" . $reactorId, 'swoole');
-        swoole_error_log(SWOOLE_TRACE_CONN, 'test');
+        $fd_info = $server->getClientInfo($fd);
+        $client_ip = $fd_info['remote_ip'];
+        $exist = $this->table->exist($fd);
+        if (!$exist) {
+            $redis_data = ['fd' => $fd, 'ip' => $client_ip];
+            $this->table->set($client_ip, $redis_data);
+            Logger::trace("newconnect fd:" . $fd . " | status:online | reactorid:" . $reactorId, 'swoole');
+        }
         echo "#connected\n";
     }
 
@@ -283,6 +287,11 @@ class SwooleServer {
      */
     public function createTable()
     {
+        $this->table = new swoole_table(ServerConfig::$swoole_server_table['table_size']);
+        foreach (ServerConfig::$swoole_server_table['table_column'] as $param_name => $param_value) {
+            $this->table->column($param_name, $param_value['type'], $param_value['size']);
+        }
+        $this->table->create();
     }
 
     public function addTableColumn($fd, $data)

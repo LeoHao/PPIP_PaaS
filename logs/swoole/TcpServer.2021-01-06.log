@@ -1,5 +1,0 @@
-[2021-01-06 17:04:57] [TcpServer::trace] [TRACE] SaaS connect fd:2 | status:online | reactorid:0 | request_ip:192.168.3.87 | response_ip:192.168.3.113 | action:plugins_network_special_open	 [leo]
-[2021-01-06 17:11:37] [TcpServer::trace] [TRACE] CPE connect fd:1 | status:waiting | reactorid:3 | request_ip:192.168.3.113	 [leo]
-[2021-01-06 17:11:46] [TcpServer::trace] [TRACE] SaaS connect fd:2 | status:online | reactorid:0 | request_ip:192.168.3.87 | response_ip:192.168.3.113 | action:plugins_network_special_open	 [leo]
-[2021-01-06 17:11:56] [TcpServer::trace] [TRACE] CPE connect fd:1 | status:waiting | reactorid:3 | request_ip:	 [leo]
-[2021-01-06 17:11:56] [TcpServer::trace] [TRACE] CPE connect fd:1 | status:waiting | reactorid:3 | request_ip:	 [leo]

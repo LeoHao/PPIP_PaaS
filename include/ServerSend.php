@@ -21,11 +21,13 @@ class ServerSend {
             $this->client = new Swoole\Coroutine\Client(SWOOLE_SOCK_TCP);
             $this->client->connect('192.168.3.30', '6001', '0.5');
             $data = array(
-                'action'=>'plugins_network_special_open',
-                'auth_name'=>'SaaS',
-                'ip'=>'192.168.3.87',
-                'key' => '1234567890',
-                'cpeip' => '192.168.3.113'
+                'Action'=>'plugins_network_special_add',
+                'ClientType'=>'SaaS',
+                'ClientIP'=>'192.168.3.87',
+                'CpeIP' => '192.168.3.113',
+                'CpeMac' => '00:F1:F3:18:86:42',
+                'SecretKey' => crc32("plugins_network_special_add" . "this is saas sncode"),
+                'ActionExt' => "{'node_id':1}"
             );
             $this->client->send(json_encode($data));
         });

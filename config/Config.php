@@ -146,14 +146,7 @@ class Config {
             return $this->__values[$key];
         }
 
-        //        if ($this->__run_mode == 'production') {
-        //            // 生产环境加载缓存
-        //            $this->_load_cache();
-        //        } else {
-        // 开发环境动态判断文件是否存在
         $this->_load_key($key);
-        //        }
-
         $value = $this->_match($key);
         Config::set($key, $value);
 
@@ -241,9 +234,10 @@ class Config {
         $path1 = $path[0]; // 第一级路径
         $path2 = $path[1]; // 第二级路径
 
-        $root_key = $path1 . '.' . $path2;
-        $file = ROOT_PATH . '/framework/config/' . $path2 . '.php';
-
+        if ($path1 == 'GLOBAL') {
+            $root_key = $path1 . '.' . $path2;
+            $file = ROOT_PATH . '/config/' . $path2 . '.php';
+        }
 
         $this->_load($root_key, false, $file);
     }
