@@ -104,5 +104,12 @@ class ServerConfig {
     public static $server_own_action = array(
         'plugins_network_special_add'
     );
+
+    public static $cpe_own_action  = array(
+        'client_init',
+        'get_own_plugins',
+        'get_own_webside',
+        'get_own_node'
+    );
 }
 ?>

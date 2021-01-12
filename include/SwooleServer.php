@@ -12,22 +12,22 @@ class SwooleServer {
     /**
      * @var $server
      */
-    public $server ;
+    public $server;
 
     /**
      * @var $config array
      */
-    public $config ;
+    public $config;
 
     /**
      * @var $_worker
      */
-    public static $_worker ;
+    public static $_worker;
 
     /**
      * pid path
      */
-    public $pidFile ;
+    public $pidFile;
 
     /**
      * @var $worker_num
@@ -37,12 +37,17 @@ class SwooleServer {
     /**
      * @var $worker_id
      */
-    public $worker_id ;
+    public $worker_id;
 
     /**
      * @var $task_num
      */
-    public $task_num ;
+    public $task_num;
+
+    /**
+     * @var $db
+     */
+    public $db;
 
     /**
      * Server constructor.
@@ -50,6 +55,7 @@ class SwooleServer {
     public function __construct()
     {
         $this->getConfig();
+        $this->db = DB_Manager::connection('ppip');
     }
 
     /**
@@ -220,7 +226,6 @@ class SwooleServer {
         if (!$exist) {
             $redis_data = ['fd' => $fd, 'ip' => $client_ip];
             $this->table->set($client_ip, $redis_data);
-            //Logger::trace("CPE connect fd:" . $fd . " | status:waiting | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " | mac_address:" . $data['mac_address'], 'swoole');
             Logger::trace("newconnect fd:" . $fd . " | status:online | reactorid:" . $reactorId, 'swoole');
         }
         echo "#connected\n";
