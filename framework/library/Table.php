@@ -39,7 +39,7 @@ class Table {
     static $db_name = 'ppip';
 
     /**
-     * db_name
+     * db object
      * 数据库名
      *
      * @var sting
@@ -109,6 +109,7 @@ class Table {
      * @param boolean $new_record 是否为未添加的新记录
      */
     public function __construct($data = array(), $new_record = true) {
+        $this->db = DB_Manager::connection(self::$db_name);
 
         $this->__new_record = $new_record;
 
@@ -266,7 +267,7 @@ class Table {
         $sql = "INSERT INTO $table_name ({$this->ec}" . join("{$this->ec}, {$this->ec}", $keys) . "{$this->ec}) VALUES $placeholder";
 
         try {
-            return $this->_db->exec($sql, $params);
+            return $this->db->exec($sql, $params);
         } catch (PDOException $e) {
             throw new ORM_Exception($e->getMessage());
         }
@@ -275,12 +276,12 @@ class Table {
     /**
      * update
      * 更新一条记录
-     *
-     * @param  array $data
-     * @param  array $conditions
-     * @return void
+     * @param $data
+     * @param $conditions
+     * @return mixed
+     * @throws Exception
      */
-    public function update($data, $conditions, $shard_data = array(), $join = '') {
+    public function update($data, $conditions) {
 
         $table_name = static::$table_name;
 
@@ -317,93 +318,25 @@ class Table {
         $params = array_merge($update_params, $params);
 
         try {
-            return $this->_db->exec($sql, $params);
+            return $this->db->exec($sql, $params);
         } catch (PDOException $e) {
-            throw new ORM_Exception($e->getMessage());
-        }
-    }
-
-    /**
-     * 删除记录
-     *
-     * @param string $conditions
-     * @param array $param
-     * @return int
-     */
-    public function delete($conditions, $shard_data = array(), $join = '') {
-
-        $table_name = $this->_table($shard_data, true);
-        $table_name_without = $this->_table($shard_data, false);
-
-        // 支持 IN (?) 查询写法
-        if (strpos($conditions[0], '(?)') !== false) {
-            $conditions = $this->rebuild_in_conditions($conditions);
-        }
-
-        if ($this->_safe_delete) {
-            $conditions = $this->rebuild_safe_delete_conditions($table_name, $conditions);
-        }
-
-        $condition = array_shift($conditions);
-        $params = $conditions;
-
-        if ($this->_safe_delete) {
-            list($sql, $params) = $this->build_safe_delete($table_name, $condition, $params, $join);
-        } else {
-            list($sql, $params) = $this->build_delete($table_name, $table_name_without, $condition, $params, $join);
-        }
-
-        try {
-            return $this->_db->exec($sql, $params);
-        } catch (PDOException $e) {
-            throw new ORM_Exception($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
     /**
      * count
      * 计算行数
-     *
-     * @param  string $conditions
-     * @param  array $params
-     * @return integer
+     * @param array $conditions
+     * @throws Exception
      */
-    public function count($conditions = array(), $join = '', $shard_data = array(), $withs = array()) {
+    public function count($conditions = array()) {
 
-        $table_name = $this->_table($shard_data, true);
+        $table_name = static::$table_name;
         $params = array();
 
         $sql = '';
-
-        if ($withs) {
-            $sql .= 'with ';
-            list($table_ori_name, $table_alias_name) = explode(' as ', strtolower($table_name));
-            foreach($withs['with_sqls'] as $with) {
-                $with_sql = $with['sql'];
-                $with_alias = $with['name'];
-                $sql .= "$with_alias as ($with_sql),";
-            }
-
-            if ($table_alias_name) {
-                $table_name = $withs['main_table'].' '.$table_alias_name;
-            } else {
-                $table_name = $withs['main_table'].' '.$table_ori_name;
-            }
-
-            $sql = rtrim($sql, ',');
-        }
-
         $sql .= "SELECT COUNT(*) FROM $table_name";
-        if ($join) {
-            $sql .= ' ' . $join;
-        }
-
-        // 如果传了with，就不添加deleted_on的筛选了。而应该在with语句中自行添加
-        if ($this->_safe_delete && !$withs) {
-            if (!($conditions[0] && (strpos($conditions[0], '`deleted_on`') !== false || strpos($conditions[0], '.deleted_on ') !== false || strpos($conditions[0], ' deleted_on ') !== false))) {
-                $conditions = $this->rebuild_safe_delete_conditions($table_name, $conditions);
-            }
-        }
 
         if ($conditions) {
             // 支持 IN (?) 查询写法
@@ -416,17 +349,16 @@ class Table {
         }
 
         try {
-            return $this->_db->fetch_one($sql, $params);
+            return $this->db->fetch_one($sql, $params);
         } catch (PDOException $e) {
-            throw new ORM_Exception($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
     /**
-     * rebuild_in_conditions
-     *
-     * @param  array $conditions
-     * @return array
+     * rebuild in conditions
+     * @param $conditions
+     * @return array $rebuilded_conditions
      */
     public function rebuild_in_conditions($conditions) {
 
@@ -462,12 +394,130 @@ class Table {
     }
 
     /**
+     * find_all
+     * 取得多条记录
+     * @param array $conditions
+     * @param string $select
+     * @param int $limit
+     * @param string $order
+     * @param string $join
+     * @param string $group_by
+     * @param false $unlimit
+     * @param array $withs
+     * @return array
+     * @throws Exception
+     */
+    public function find_all($conditions = array(), $select = '', $limit = 0, $order = '', $join = '', $group_by = '', $unlimit = false, $withs = array()) {
+
+        $table_name = static::$table_name;
+        $params = array();
+
+        if (!$select) {
+            $select = '*';
+        }
+
+        $sql = '';
+        if ($withs) {
+            $sql .= 'with ';
+            list($table_ori_name, $table_alias_name) = explode(' as ', strtolower($table_name));
+            foreach($withs['with_sqls'] as $with) {
+                $with_sql = $with['sql'];
+                $with_alias = $with['name'];
+                $sql .= "$with_alias as ($with_sql),";
+            }
+            if ($table_alias_name) {
+                $table_name = $withs['main_table'].' '.$table_alias_name;
+            } else {
+                $table_name = $withs['main_table'].' '.$table_ori_name;
+            }
+
+            $sql = rtrim($sql, ',');
+        }
+
+
+        $sql .= "SELECT $select FROM $table_name";
+        if ($join) {
+            $sql .= ' ' . $join;
+        }
+
+        if ($conditions) {
+            // 支持 IN (?) 查询写法
+            if (strpos($conditions[0], '(?)') !== false) {
+                $conditions = $this->rebuild_in_conditions($conditions);
+            }
+            $sql .= ' WHERE ' . array_shift($conditions);
+            $params = $conditions;
+        }
+
+        if ($group_by) {
+            $sql .= " GROUP BY $group_by";
+        }
+
+        if ($order && is_array($order)) {
+            $order_clause = '';
+            foreach ($order as $field => $order_by) {
+                $order_clause .= "{$this->ec}{$field}{$this->ec} $order_by,";
+            }
+            $sql .= ' ORDER BY ' . rtrim($order_clause, ',');
+        } elseif ($order && is_string($order)) {
+            $sql .= ' ORDER BY ' . $order;
+        }
+
+        if (!$limit) {
+            $limit = 100;
+        } elseif (!$unlimit && $limit > 100) {
+            $limit = 100;
+        }
+
+        $sql .= $this->build_limit($limit);
+
+        try {
+            $rows = $this->db->fetch_all($sql, $params);
+        } catch (PDOException $e) {
+            throw new Exception($e->getMessage());
+        }
+
+        return $rows;
+    }
+
+    /**
+     * build_limit
+     *
+     * @param  integer $limit
+     * @param  integer $start
+     * @return string
+     */
+    public function build_limit($limit, $start = 0) {
+            return " LIMIT $limit";
+    }
+
+    /**
+     * build_in_condition
+     *
+     * @param  string $field
+     * @param  array $params
+     * @return string
+     */
+    public function build_in_condition($field, $params) {
+
+        $sql = '';
+
+        if ($params && is_array($params)) {
+            $sql = "{$this->ec}{$field}{$this->ec} IN (";
+            $sql .= join(',', array_pad(array(), count($params), '?'));
+            $sql .= ')';
+        }
+
+        return $sql;
+    }
+
+    /**
      * exec
      * 执行sql语句
-     *
-     * @param  string $sql
-     * @param  string $params
-     * @return void
+     * @param $sql
+     * @param array $params
+     * @return int
+     * @throws Exception
      */
     public function exec($sql, $params = array()) {
 
@@ -481,9 +531,9 @@ class Table {
         }
 
         try {
-            $result = $this->_db->exec($sql, $params);
+            $result = $this->db->exec($sql, $params);
         } catch (PDOException $e) {
-            throw new ORM_Exception($e);
+            throw new Exception($e);
         }
 
         return $result;

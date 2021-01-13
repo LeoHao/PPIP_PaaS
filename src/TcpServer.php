@@ -90,7 +90,9 @@ class TcpServer extends SwooleServer{
             $send_data['SendIp'] = $data['ClientIp'];
         }
         */
-            $cpe_info = $this->db->fetch_row('SELECT * FROM "cpe"."devices" WHERE "mac"='."'" . $data['CpeMac'] ."'");
+      //      $cpe_info = $this->db->fetch_row('SELECT * FROM "cpe"."devices" WHERE "mac"='."'" . $data['CpeMac'] ."'");
+            $devices = new Devices();
+            $cpe_info = $devices->find_by_mac($data['CpeMac']);
             $cpe_sncode = $cpe_info['sncode'];
             $cpe_ip = $cpe_info['ip'];
             $account_data = array();

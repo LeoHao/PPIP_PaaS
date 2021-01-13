@@ -45,17 +45,11 @@ class SwooleServer {
     public $task_num;
 
     /**
-     * @var $db
-     */
-    public $db;
-
-    /**
      * Server constructor.
      */
     public function __construct()
     {
         $this->getConfig();
-        $this->db = DB_Manager::connection('ppip');
     }
 
     /**

@@ -62,7 +62,7 @@ class Skel {
      * @return void
      */
     protected function _registAutoload() {
-        $require_path = array('/framework/library/', '/config/', '/logs/');
+        $require_path = array('/framework/library/', '/framework/library/DB/', '/config/', '/logs/');
         $params = $_SERVER['argv'];
         $filename = array_shift($params);
         $this->mapFilePath($require_path, $filename);
@@ -77,13 +77,13 @@ class Skel {
                     if($singleFileName === '.' || $singleFileName === '..'){
                         continue;
                     } else {
-                            $secondPath = $libraryPath . $singleFileName . '/';
+                           /* $secondPath = $libraryPath . $singleFileName . '/';
                             $secondFiles = scandir($secondPath);
                             foreach ($secondFiles as $fileName) {
                                 if (strtolower(pathinfo($fileName, PATHINFO_EXTENSION)) == 'php') {
                                     include_once ($secondPath . $fileName);
                                 }
-                            }
+                            }*/
                     }
                     continue;
                 }
