@@ -56,14 +56,15 @@ class Devices extends Table {
      * @param $mac_address
      * @return mixed
      */
-    public function find_by_mac($mac_address) {
+    public static function find_by_mac($mac_address) {
 
         $options = array(
             'mac = ?',
             $mac_address
         );
 
-        $devices = $this->find_all($options);
+        $table_info = Table::load('ppip', self::$table_name, self::$properties);
+        $devices = $table_info->find_all($options);
         return $devices[0];
     }
 }

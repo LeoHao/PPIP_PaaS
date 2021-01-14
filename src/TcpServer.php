@@ -8,13 +8,12 @@
  **/
 
 require_once(dirname(dirname(__FILE__)) . "/bin/Skel.php");
-require_once(dirname(dirname(__FILE__)) . "/include/SwooleServer.php");
 
 class TcpServer extends SwooleServer{
 
     /**
      * 获取配置文件
-     * 
+     *
      * @return array $config
      */
     public function getConfig() {
@@ -90,9 +89,7 @@ class TcpServer extends SwooleServer{
             $send_data['SendIp'] = $data['ClientIp'];
         }
         */
-      //      $cpe_info = $this->db->fetch_row('SELECT * FROM "cpe"."devices" WHERE "mac"='."'" . $data['CpeMac'] ."'");
-            $devices = new Devices();
-            $cpe_info = $devices->find_by_mac($data['CpeMac']);
+            $cpe_info = Devices::find_by_mac($data['CpeMac']);
             $cpe_sncode = $cpe_info['sncode'];
             $cpe_ip = $cpe_info['ip'];
             $account_data = array();
@@ -119,13 +116,13 @@ class TcpServer extends SwooleServer{
         $send_data = array();
         $function_name = $this->getActionFunctionName($data['Action']);
         if (in_array($data['Action'], ServerConfig::$cpe_own_action)) {
-            $data = $this->$function_name($data, $this->db);
+            $data = ServerAction::$function_name($data);
             if (!empty($data)) {
                 $send_data['SendIp'] = $data['ClientIP'];
                 $send_data['ResultData'] = $data;
             }
         } elseif (in_array($data['Action'], ServerConfig::$server_own_action)) {
-            $data = $this->$function_name($data);
+            $data = ServerAction::$function_name($data);
         }
         return $send_data;
     }
@@ -145,8 +142,8 @@ class TcpServer extends SwooleServer{
                     return false;
                 }
             } elseif ($data['ClientType'] == ServerConfig::CLIENT_FOR_CPE) {
-                //$cpe_sncode = $redis->get($data['ClientMac']);
-                $cpe_sncode = 'test';
+                $cpe_info = Devices::find_by_mac($data['CpeMac']);
+                $cpe_sncode = $cpe_info['sncode'];
                 $validate_str = $data['Action'] . $cpe_sncode;
                 $validate_key = crc32($validate_str);
                 if ($validate_key != $data['SecretKey']) {
@@ -197,4 +194,3 @@ class TcpServer extends SwooleServer{
 }
 $swoole_tcp_server = new TcpServer();
 $swoole_tcp_server->connect();
-?>

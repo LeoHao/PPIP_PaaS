@@ -66,17 +66,17 @@ class SwooleServer {
 
     public function connect()
     {
-        $this->server = new swoole_server($this->config ['host'] , $this->config ['port']);
+        $this->server = new \Swoole\Server($this->config ['host'], $this->config ['port'], SWOOLE_PROCESS);
         $this->serverConfig();
         $this->createTable();
-        self::$_worker = & $this;
+        self::$_worker = &$this;
         self::main();
     }
 
     public function start()
     {
         foreach (ServerConfig::$swoole_server_function_map as $swoole_func => $local_func) {
-            $this->server->on($swoole_func,[$this , $local_func]);
+            $this->server->on($swoole_func, [$this, $local_func]);
         }
         $this->server->start();
     }
@@ -122,7 +122,7 @@ class SwooleServer {
      * @param \swoole_server $server
      * @param int            $worker_id
      */
-    public function onSwooleWorkerStart(swoole_server $server, int $worker_id)
+    public function onSwooleWorkerStart(swoole_server $server, $worker_id)
     {
         if($this->isTaskProcess($server))
         {

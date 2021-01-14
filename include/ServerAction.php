@@ -15,8 +15,11 @@ class ServerAction {
      * @param $db
      * @return array
      */
-    public static function clientInit($data, $db)
+    public static function clientInit($data)
     {
+
+        Devices::find_by_mac($data['CpeMac']);
+
         return array();
     }
 

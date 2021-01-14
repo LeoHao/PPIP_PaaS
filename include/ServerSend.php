@@ -17,7 +17,8 @@ class ServerSend {
      */
     public function reconnect()
     {
-        go(function() {
+        /*
+        Swoole\Coroutine\run(function () {
             $this->client = new Swoole\Coroutine\Client(SWOOLE_SOCK_TCP);
             $this->client->connect('192.168.3.30', '6001', '0.5');
             $data = array(
@@ -25,15 +26,18 @@ class ServerSend {
                 'ClientType'=>'SaaS',
                 'ClientIP'=>'192.168.3.87',
                 'CpeIP' => '192.168.3.113',
-                'CpeMac' => '00:F1:F3:18:86:42',
+                'CpeMac' => '00:F1:F3:18:86:43',
                 'SecretKey' => crc32("plugins_network_special_add" . "this is saas sncode"),
                 'ActionExt' => "{'node_id':1}"
             );
             $this->client->send(json_encode($data));
         });
+        */
     }
     
 }
-$send = new ServerSend();
-$send->reconnect();
+Swoole\Coroutine\run(function () {
+    $send = new ServerSend();
+    $send->reconnect();
+});
 ?>

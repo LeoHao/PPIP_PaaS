@@ -14,6 +14,7 @@ class Table {
      */
     const TABLE_POSTGRESQL = 'pgsql';
 
+    static $tables;
     /**
      * $primary_key
      * 主键名称, 必填
@@ -37,14 +38,6 @@ class Table {
      * @var sting
      */
     static $db_name = 'ppip';
-
-    /**
-     * db object
-     * 数据库名
-     *
-     * @var sting
-     */
-    public $db;
 
     /**
      * $properties
@@ -108,8 +101,11 @@ class Table {
      * @param array $data Model对象数据
      * @param boolean $new_record 是否为未添加的新记录
      */
-    public function __construct($data = array(), $new_record = true) {
-        $this->db = DB_Manager::connection(self::$db_name);
+    public function __construct($db_name, $table_name, $pk, $data = array(), $new_record = true) {
+
+        $this->table_name = $table_name;
+        $this->pk = $pk;
+        $this->db = DB_Manager::connection($db_name);
 
         $this->__new_record = $new_record;
 
@@ -231,7 +227,7 @@ class Table {
     public static function table() {
 
         $db_name = static::get_db_name();
-        $db_config = Config::get($db_name);
+        $db_config = Config::get('GLOBAL.DB.' . $db_name);
         if (!$db_config) {
             throw new Exception("Could not find database $db_name config");
         }
@@ -245,6 +241,37 @@ class Table {
         }
     }
 
+    /**
+     * load
+     * 获取 Table 对象
+     *
+     * @param  string $table_name 数据表名称
+     * @param  string $pk 数据表主键
+     * @return Table
+     */
+    public static function load($db_name, $table_name, $data) {
+
+        // Table 缓存池标识需要合并分库的信息，保证同一个表不同分库不会连接到错误的库
+        $table_tag = self::get_table_tag($db_name, $table_name);
+        if (!self::$tables[$table_tag]) {
+            $db_config = Config::get('GLOBAL.DB.' . $db_name);
+            if (!$db_config) {
+                throw new Exception("Could not find database $db_name config");
+            }
+
+            switch ($db_config['protocol']) {
+                case self::TABLE_POSTGRESQL:
+                    return $table = new Table($db_name, $table_name, $data);
+                default:
+                    throw new Exception("Undefined database protocol ${db_config['protocol']}");
+                    break;
+            }
+
+            static::$tables[$table_tag] = $table;
+        }
+
+        return static::$tables[$table_tag];
+    }
     /**
      * insert
      * 插入一条记录 或更新表记录
@@ -409,7 +436,7 @@ class Table {
      */
     public function find_all($conditions = array(), $select = '', $limit = 0, $order = '', $join = '', $group_by = '', $unlimit = false, $withs = array()) {
 
-        $table_name = static::$table_name;
+        $table_name = $this->table_name;
         $params = array();
 
         if (!$select) {

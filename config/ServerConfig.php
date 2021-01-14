@@ -56,7 +56,11 @@ class ServerConfig {
                 'type' => swoole_table::TYPE_STRING,
                 'size' => 20
             ),
-            'ClientStatus' => array(
+            'CpeName' => array(
+                'type' => swoole_table::TYPE_STRING,
+                'size' => 255
+            ),
+            'CpeStatus' => array(
                 'type' => swoole_table::TYPE_STRING,
                 'size' => 255
             ),
@@ -77,10 +81,11 @@ class ServerConfig {
 
     public static $swoole_server_tcp = array(
         'worker_num' => 10,
+        //'daemonize' => false,
         'task_worker_num' => 5,
         'dispatch_mode' => 2,
-        'heartbeat_check_interval' => 10,
-        'heartbeat_idle_time'      => 20,
+        'heartbeat_check_interval' => 360,
+        'heartbeat_idle_time'      => 600,
         'max_connection' => 500,
         'log_file' => ROOT_PATH . '/logs/swoole/swoole.log'
     );
