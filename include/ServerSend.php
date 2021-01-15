@@ -22,7 +22,7 @@ class ServerSend {
             $this->client = new Swoole\Coroutine\Client(SWOOLE_SOCK_TCP);
             $this->client->connect('192.168.3.30', '6001', '0.5');
             $data = array(
-                'Action'=>'plugins_network_special_add',
+                'Action'=>'plugins_network_special_open',
                 'ClientType'=>'SaaS',
                 'ClientIP'=>'192.168.3.87',
                 'CpeIP' => '192.168.3.113',

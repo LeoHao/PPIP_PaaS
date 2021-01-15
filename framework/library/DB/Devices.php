@@ -14,7 +14,7 @@ class Devices extends Table {
      *
      * @var string
      */
-    static $table_name = 'cpe.devices';
+    static $table_name = 'paas.devices';
 
     /**
      * 主键
@@ -58,13 +58,30 @@ class Devices extends Table {
      */
     public static function find_by_mac($mac_address) {
 
-        $options = array(
+        $conditions = array(
             'mac = ?',
             $mac_address
         );
 
         $table_info = Table::load('ppip', self::$table_name, self::$properties);
-        $devices = $table_info->find_all($options);
+        $devices = $table_info->find_all($conditions);
         return $devices[0];
+    }
+
+    /**
+     * update_by_mac
+     * @param $data
+     * @param $mac_address
+     * @return bool
+     */
+    public static function update_by_mac($data, $mac_address) {
+
+        $conditions = array(
+            'mac = ?',
+            $mac_address
+        );
+
+        $table_info = Table::load('ppip', self::$table_name, self::$properties);
+        return $table_info->update($data, $conditions);
     }
 }

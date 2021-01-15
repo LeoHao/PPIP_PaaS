@@ -296,7 +296,7 @@ class Table {
         try {
             return $this->db->exec($sql, $params);
         } catch (PDOException $e) {
-            throw new ORM_Exception($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -305,12 +305,12 @@ class Table {
      * 更新一条记录
      * @param $data
      * @param $conditions
-     * @return mixed
+     * @return int
      * @throws Exception
      */
     public function update($data, $conditions) {
 
-        $table_name = static::$table_name;
+        $table_name = $this->table_name;
 
         $update_params = array();
         if (is_array($data)) {
@@ -322,7 +322,7 @@ class Table {
                         $update_params = array_merge($update_params, $value['params']);
                     }
                 } else {
-                    array_push($update_placeholder, "{$this->ec}{$key}{$this->ec} = ?");
+                    array_push($update_placeholder, "{$key} = ?");
                     array_push($update_params, $value);
                 }
             }

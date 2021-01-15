@@ -107,7 +107,12 @@ class ServerConfig {
     );
 
     public static $server_own_action = array(
-        'plugins_network_special_add'
+        'plugins_network_special_open',
+        'plugins_network_special_change',
+        'plugins_network_webside_open',
+        'plugins_network_webside_change',
+        'plugins_network_group_open',
+        'plugins_network_group_change',
     );
 
     public static $cpe_own_action  = array(
