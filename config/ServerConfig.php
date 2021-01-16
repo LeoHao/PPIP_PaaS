@@ -117,9 +117,9 @@ class ServerConfig {
 
     public static $cpe_own_action  = array(
         'client_init',
-        'get_own_plugins',
-        'get_own_webside',
-        'get_own_node'
+        'client_get_own_plugins',
+        'client_get_own_webside',
+        'client_get_own_node'
     );
 }
 ?>

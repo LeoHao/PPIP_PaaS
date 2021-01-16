@@ -55,7 +55,7 @@ class TcpServer extends SwooleServer{
                 $send_data = $this->disposeSaasRequestData($data);
                 $fd_info = $this->table->get($send_data['SendIp']);
                 $server->send($fd_info['fd'] , json_encode($send_data));
-                Logger::trace("SaaS connect fd:" . $fd . " | status:online | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " | response_ip:" . $data['cpeip'] . " | action:" . $data['action'], 'swoole');
+                Logger::trace("SaaS connect fd:" . $fd . " | status:online | reactorid:" . $reactorId . " | request_ip:" . $data['ClientIP'] . " | response_ip:" . $data['CpeIP'] . " | action:" . $data['Action'], 'swoole');
             }
 
             if (isset($data['ClientType']) && $data['ClientType'] == ServerConfig::CLIENT_FOR_CPE) {
