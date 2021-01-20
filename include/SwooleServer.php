@@ -292,4 +292,33 @@ class SwooleServer {
     {
         $this->table->set($fd, $data);
     }
+
+    public function createUserForControl($data, $cpe)
+    {
+        $account_data = array();
+        //$account_data['ConnectType'] = Validator::check_ip_true_wan($cpe['ip']) ? ServerConfig::SPECIAL_CONNETCT_GRE : ServerConfig::SPECIAL_CONNETCT_L2TP;
+        $action_ext = json_decode($data['ActionExt'], true);
+        $node_id = $action_ext['node_id'];
+        $dest_id = $action_ext['dest_id'];
+        $dw = $action_ext['dw'];
+        $nodes = Nodes::find_by_id($node_id);
+        $dest = Dests::find_by_id($dest_id);
+        if (!empty($dest)) {
+            $redirect_node_id = explode(",", $dest['node_id']);
+            $control_node_id = $redirect_node_id[0];
+            $control_node = Nodes::find_by_id($control_node_id);
+            $telnet = new Telnet($control_node['ip'], ServerConfig::CONTROL_SERVER_PORT);
+            if ($telnet) {
+                $connected = $telnet->login(ServerConfig::$control_server_auth_0['username'], ServerConfig::$control_server_auth_0['password']);
+               $set_command = $telnet->exec("interface print");
+                var_dump($set_command);die;
+            }
+        }
+
+        $account_data['ConnectType'] = ServerConfig::SPECIAL_CONNETCT_L2TP;
+        $account_data['NodeIp'] = '116.77.235.116';
+        $account_data['AccountName'] = 'sdwantest1';
+        $account_data['AccountPwd'] = 'sdwantest1';
+        return $account_data;
+    }
 }

@@ -90,18 +90,11 @@ class TcpServer extends SwooleServer{
         }
         */
             $cpe_info = Devices::find_by_mac($data['CpeMac']);
-            $cpe_sncode = $cpe_info['sncode'];
-            $cpe_ip = $cpe_info['ip'];
-            $account_data = array();
-            $account_data['ConnectType'] = 'L2TP';
-            $account_data['NodeIp'] = '116.77.235.116';
-            $account_data['AccountName'] = 'sdwantest1';
-            $account_data['AccountPwd'] = 'sdwantest1';
             $send_data['Action'] = $data['Action'];
             $send_data['ClientType'] = ServerConfig::CLIENT_FOR_PAAS;
-            $send_data['SecretKey'] = crc32($data['Action'] . $cpe_sncode);
-            $send_data['ActionExt'] = $account_data;
-            $send_data['SendIp'] = $cpe_ip;
+            $send_data['SecretKey'] = crc32($data['Action'] . $cpe_info['sncode']);
+            $send_data['ActionExt'] = $this->createUserForControl($data, $cpe_info);
+            $send_data['SendIp'] = $cpe_info['ip'];
         }
         return $send_data;
     }

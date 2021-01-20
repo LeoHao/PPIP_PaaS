@@ -19,7 +19,15 @@ class ServerConfig {
 
     const SAAS_SERVER_IP = '192.168.3.87';
 
-    const SERVER_SWOOLE_PORT = '6001';
+    const SERVER_SWOOLE_PORT = '7250';
+
+    const SERVER_TELNET_PORT = '23';
+
+    const CONTROL_SERVER_PORT = '3388';
+
+    const SPECIAL_CONNETCT_L2TP = 'L2TP';
+
+    const SPECIAL_CONNETCT_GRE = 'GRE';
 
     public static $swoole_server_table = array(
         'table_size' => 65536,
@@ -112,7 +120,7 @@ class ServerConfig {
         'plugins_network_webside_open',
         'plugins_network_webside_change',
         'plugins_network_group_open',
-        'plugins_network_group_change',
+        'plugins_network_group_change'
     );
 
     public static $cpe_own_action  = array(
@@ -120,6 +128,21 @@ class ServerConfig {
         'client_get_own_plugins',
         'client_get_own_webside',
         'client_get_own_node'
+    );
+
+    public static $os_own_action  = array(
+        'cpe_opkg_update_theme',
+        'cpe_opkg_update_plugins'
+    );
+
+    public static $control_server_auth_0  = array(
+        'username' => 'haojianping',
+        'password' => 'haojianping@778899'
+    );
+
+    public static $control_server_auth_1  = array(
+        'username' => 'haojianping',
+        'password' => 'Ha@jian!@#ping@!!!'
     );
 }
 ?>

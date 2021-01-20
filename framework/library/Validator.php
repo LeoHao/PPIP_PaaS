@@ -694,5 +694,19 @@ class Validator {
         return self::verify($data, $options);
     }
 
+    /**
+     * 判断ip是否为真实的公网ip
+     * check ip is true wan
+     * @param $ip
+     * @return bool
+     */
+    public static function check_ip_true_wan($ip)
+    {
+        $telnet = new Telnet($ip);
+        if (!($telnet)) {
+            return false;
+        }
+        return true;
+    }
 }
 
