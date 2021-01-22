@@ -7,6 +7,8 @@
  * @Description      : this is base on Swoole tcp server
 **/
 
+use PEAR2\Net\RouterOS;
+
 class SwooleServer {
 
     /**
@@ -307,12 +309,12 @@ class SwooleServer {
             $redirect_node_id = explode(",", $dest['node_id']);
             $control_node_id = $redirect_node_id[0];
             $control_node = Nodes::find_by_id($control_node_id);
-            $telnet = new Telnet($control_node['ip'], ServerConfig::CONTROL_SERVER_PORT);
-            if ($telnet) {
-                $connected = $telnet->login(ServerConfig::$control_server_auth_0['username'], ServerConfig::$control_server_auth_0['password']);
-               $set_command = $telnet->exec("interface print");
-                var_dump($set_command);die;
+            try {
+                $client = new RouterOS\Client('14.116.160.84', 'haojianping', 'haojianping@778899');
+            } catch (Exception $e) {
+                die('Unable to connect to the router.');
             }
+            $responses = $client->sendSync(new RouterOS\Request('/log/print'));
         }
 
         $account_data['ConnectType'] = ServerConfig::SPECIAL_CONNETCT_L2TP;

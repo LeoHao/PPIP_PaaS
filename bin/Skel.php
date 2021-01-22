@@ -62,7 +62,13 @@ class Skel {
      * @return void
      */
     protected function _registAutoload() {
-        $require_path = array('/framework/library/', '/framework/library/DB/', '/config/', '/logs/', '/include/');
+        $require_path = array('/framework/library/',
+            '/framework/library/DB/',
+            '/framework/library/PEAR2/',
+            '/config/',
+            '/logs/',
+            '/include/'
+        );
         $params = $_SERVER['argv'];
         $filename = array_shift($params);
         $this->mapFilePath($require_path, $filename);

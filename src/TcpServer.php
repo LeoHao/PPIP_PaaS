@@ -7,8 +7,8 @@
  * @Description      : this is base on Swoole tcp server
  **/
 
-require_once(dirname(dirname(__FILE__)) . "/bin/Skel.php");
 
+require_once(dirname(dirname(__FILE__)) . "/bin/Skel.php");
 class TcpServer extends SwooleServer{
 
     /**
