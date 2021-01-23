@@ -29,6 +29,9 @@ class ServerConfig {
 
     const SPECIAL_CONNETCT_GRE = 'GRE';
 
+    const ROUTER_REMOTE_ADDRESS_PART = '10.10.100';
+
+
     public static $swoole_server_table = array(
         'table_size' => 65536,
         'table_column' => array(

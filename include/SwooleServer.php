@@ -7,8 +7,6 @@
  * @Description      : this is base on Swoole tcp server
 **/
 
-use PEAR2\Net\RouterOS;
-
 class SwooleServer {
 
     /**
@@ -298,29 +296,47 @@ class SwooleServer {
     public function createUserForControl($data, $cpe)
     {
         $account_data = array();
+        $router_data = $this->setAccountNeedData($data, $cpe);
+        if ($router_data) {
+            $account_data['ConnectType'] = ServerConfig::SPECIAL_CONNETCT_L2TP;
+            $account_data['NodeIp'] = $router_data['server'];
+            $account_data['AccountName'] = $router_data['username'];
+            $account_data['AccountPwd'] = $router_data['password'];
+        }
+        return $account_data;
+    }
+
+    /**
+     * set router account need data
+     * @param $data
+     * @param $cpe
+     * @return mixed
+     */
+    public function setAccountNeedData($data, $cpe) 
+    {
+        $router_account = array();
         //$account_data['ConnectType'] = Validator::check_ip_true_wan($cpe['ip']) ? ServerConfig::SPECIAL_CONNETCT_GRE : ServerConfig::SPECIAL_CONNETCT_L2TP;
+        $create_account_data = array();
         $action_ext = json_decode($data['ActionExt'], true);
         $node_id = $action_ext['node_id'];
         $dest_id = $action_ext['dest_id'];
-        $dw = $action_ext['dw'];
         $nodes = Nodes::find_by_id($node_id);
-        $dest = Dests::find_by_id($dest_id);
-        if (!empty($dest)) {
+        if (!empty($dest = Dests::find_by_id($dest_id))) {
             $redirect_node_id = explode(",", $dest['node_id']);
             $control_node_id = $redirect_node_id[0];
             $control_node = Nodes::find_by_id($control_node_id);
-            try {
-                $client = new RouterOS\Client('14.116.160.84', 'haojianping', 'haojianping@778899');
-            } catch (Exception $e) {
-                die('Unable to connect to the router.');
-            }
-            $responses = $client->sendSync(new RouterOS\Request('/log/print'));
+            $create_account_data['ConnectDW'] = $action_ext['dw'];
+            $create_account_data['ConnectCpeMac'] = $cpe['mac'];
+            $create_account_data['ConnectCpeID'] = $cpe['id'];
+            $create_account_data['ConnectCompanyName'] = $data['CompanyName'];
+            $create_account_data['ConnectCompanyName'] = 'PPIPGLOBAL';
+            $create_account_data['ConnectNodeCity'] = $nodes['city'];
+            $create_account_data['ConnectNode'] = $control_node['ip'];
+            $create_account_data['ConnectType'] = ServerConfig::SPECIAL_CONNETCT_L2TP;
+            $create_account_data['ConnectAccount'] = ServerConfig::$control_server_auth_0;
+            $router_account = Router::createRouterAccount($create_account_data);
         }
-
-        $account_data['ConnectType'] = ServerConfig::SPECIAL_CONNETCT_L2TP;
-        $account_data['NodeIp'] = '116.77.235.116';
-        $account_data['AccountName'] = 'sdwantest1';
-        $account_data['AccountPwd'] = 'sdwantest1';
-        return $account_data;
+        
+        return $router_account;
     }
 }

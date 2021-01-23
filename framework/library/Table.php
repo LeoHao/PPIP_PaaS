@@ -103,7 +103,7 @@ class Table {
      */
     public function __construct($db_name, $table_name, $pk, $data = array(), $new_record = true) {
 
-        $this->table_name = $table_name;
+        $this->table_name = self::$table_name = $table_name;
         $this->pk = $pk;
         $this->db = DB_Manager::connection($db_name);
 
@@ -291,7 +291,7 @@ class Table {
             $params[] = $value;
         }
 
-        $sql = "INSERT INTO $table_name ({$this->ec}" . join("{$this->ec}, {$this->ec}", $keys) . "{$this->ec}) VALUES $placeholder";
+        $sql = "INSERT INTO $table_name (" . join(", ", $keys) . ") VALUES $placeholder";
 
         try {
             return $this->db->exec($sql, $params);
