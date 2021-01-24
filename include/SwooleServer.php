@@ -315,7 +315,6 @@ class SwooleServer {
     public function setAccountNeedData($data, $cpe) 
     {
         $router_account = array();
-        //$account_data['ConnectType'] = Validator::check_ip_true_wan($cpe['ip']) ? ServerConfig::SPECIAL_CONNETCT_GRE : ServerConfig::SPECIAL_CONNETCT_L2TP;
         $create_account_data = array();
         $action_ext = json_decode($data['ActionExt'], true);
         $node_id = $action_ext['node_id'];
@@ -332,7 +331,7 @@ class SwooleServer {
             $create_account_data['ConnectCompanyName'] = 'PPIPGLOBAL';
             $create_account_data['ConnectNodeCity'] = $nodes['city'];
             $create_account_data['ConnectNode'] = $control_node['ip'];
-            $create_account_data['ConnectType'] = ServerConfig::SPECIAL_CONNETCT_L2TP;
+			$create_account_data['ConnectType'] = Validator::check_ip_true_wan($cpe['ip']) ? ServerConfig::SPECIAL_CONNETCT_L2TP : ServerConfig::SPECIAL_CONNETCT_L2TP;
             $create_account_data['ConnectAccount'] = ServerConfig::$control_server_auth_0;
             $router_account = Router::createRouterAccount($create_account_data);
         }

@@ -29,10 +29,16 @@ class ServerConfig {
 
     const SPECIAL_CONNETCT_GRE = 'GRE';
 
-    const ROUTER_REMOTE_ADDRESS_PART = '10.10.100';
+    const ROUTER_REMOTE_ADDRESS_PART = '10.10';
+
+	const ROUTER_REMOTE_ADDRESS_PART_START = '10';
+
+	const ROUTER_REMOTE_ADDRESS_PART_END = '254';
+
+	const ROUTER_PREFIX_NAME = 'pool';
 
 
-    public static $swoole_server_table = array(
+	public static $swoole_server_table = array(
         'table_size' => 65536,
         'table_column' => array(
             'fd' => array(

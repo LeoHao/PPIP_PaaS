@@ -702,8 +702,8 @@ class Validator {
      */
     public static function check_ip_true_wan($ip)
     {
-        $telnet = new Telnet($ip);
-        if (!($telnet)) {
+		$ip = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+        if (!$ip) {
             return false;
         }
         return true;
