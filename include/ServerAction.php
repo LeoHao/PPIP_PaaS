@@ -21,7 +21,8 @@ class ServerAction {
             $update_data = array();
             $update_data['ip'] = $data['CpeIp'];
             $update_data['status'] = ($data['CpeStatus'] == 'online') ? 1 : 0;
-            if (Devices::update_by_mac($update_data, $data['CpeMac'])) {
+			$update_data['connect_time'] = date("Y-m-d H:i:s");
+			if (Devices::update_by_mac($update_data, $data['CpeMac'])) {
                 Logger::trace("CPE update info data:" . json_encode($data), 'swoole');
             }
         }

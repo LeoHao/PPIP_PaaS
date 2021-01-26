@@ -148,8 +148,8 @@ class Router {
 			if ($client->sendSync($addRequest)->getType() !== RouterOS\Response::TYPE_FINAL) {
 				return $rxtx;
 			}
-			return $rxtx;
 		}
+		return $rxtx;
 	}
 
 	/**

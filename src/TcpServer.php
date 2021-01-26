@@ -59,7 +59,7 @@ class TcpServer extends SwooleServer{
             }
 
             if (isset($data['ClientType']) && $data['ClientType'] == ServerConfig::CLIENT_FOR_CPE) {
-                $send_data = $this->disposeCpeRequestData($data);
+                $send_data = $this->disposeCpeRequestData($data, $fd);
                 if (!empty($send_data)) {
                     $fd_info = $this->table->get($send_data['SendIp']);
                     $server->send($fd_info['fd'] , json_encode($send_data));
@@ -102,12 +102,16 @@ class TcpServer extends SwooleServer{
     /**
      * dispose cpe request data
      * @param $data
-     * @return array send_data
+	 * @param $fd
+	 * @return array send_data
      */
-    public function disposeCpeRequestData($data)
+    public function disposeCpeRequestData($data, $fd)
     {
         $send_data = array();
-        $function_name = $this->getActionFunctionName($data['Action']);
+		$this->client_mac_map[$data['CpeMac']] = $fd;
+		$this->client_fd_map[$fd] = $data['CpeMac'];
+		$this->client_mac_data_map[$data['CpeMac']]['fd'] = $fd;
+		$function_name = $this->getActionFunctionName($data['Action']);
         if (in_array($data['Action'], ServerConfig::$cpe_own_action)) {
             $data = ServerAction::$function_name($data);
             if (!empty($data)) {

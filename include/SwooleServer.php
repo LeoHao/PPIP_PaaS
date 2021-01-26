@@ -44,12 +44,22 @@ class SwooleServer {
      */
     public $task_num;
 
+	/**
+	 * @var $client_mac_map
+	 */
+	public $client_mac_map = array();
+
+	/**
+	 * @var $client_fd_map
+	 */
+	public $client_fd_map = array();
+
     /**
      * Server constructor.
      */
     public function __construct()
     {
-        $this->getConfig();
+		$this->getConfig();
     }
 
     /**
@@ -69,7 +79,7 @@ class SwooleServer {
         $this->server = new \Swoole\Server($this->config ['host'], $this->config ['port'], SWOOLE_PROCESS);
         $this->serverConfig();
         $this->createTable();
-        self::$_worker = &$this;
+		self::$_worker = &$this;
         self::main();
     }
 
@@ -237,14 +247,21 @@ class SwooleServer {
     }
 
     /**
-     * 连接断开，广播业务需要从redis | memcached | 内存 中删除该fd
+     * 连接断开
      * @param $server
      * @param $fd
      * @param $reactorId
      */
     public function onSwooleClose($server, $fd ,$reactorId)
     {
-        //$this->table->del($fd);
+		$update_data = array();
+		$update_data['status'] = 0;
+		$update_data['connect_time'] = date("Y-m-d H:i:s");
+    	$client_mac = $this->client_fd_map[$fd];
+		Devices::update_by_mac($update_data, $client_mac);
+        $this->table->del($fd);
+        unset($this->client_fd_map[$fd]);
+		Logger::trace("client close fd:" . $fd . " | status:Offline | reactorid:" . $reactorId, 'swoole');
     }
 
     public function setProcessName($name)

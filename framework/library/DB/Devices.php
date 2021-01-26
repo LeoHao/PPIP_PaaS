@@ -48,7 +48,10 @@ class Devices extends Table {
         ),
         'status' => array(
             'type' => 'int'
-        )
+        ),
+		'connect_time' => array(
+			'type' => 'timestamp'
+		)
     );
 
     /**

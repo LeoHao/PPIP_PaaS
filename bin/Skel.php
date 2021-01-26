@@ -11,6 +11,7 @@
 define('ROOT_PATH' , dirname(dirname(__FILE__)));
 define('LOG_SWOOLE_PATH' , dirname(dirname(__FILE__)) . '/logs/swoole/');
 error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
+date_default_timezone_set('Asia/Shanghai');
 
 class Skel {
 
