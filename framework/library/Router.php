@@ -63,7 +63,7 @@ class Router {
 			$new_ip_address_third_part = $current_max_third_part + 1;
 			$new_remote_address = ServerConfig::ROUTER_REMOTE_ADDRESS_PART . '.' . $new_ip_address_third_part . '.' . ServerConfig::ROUTER_REMOTE_ADDRESS_PART_START;
 			$new_remote_address_gateway = ServerConfig::ROUTER_REMOTE_ADDRESS_PART . '.' . $new_ip_address_third_part . '.1';
-			//self::setPoolsRule($client, $new_ip_address_third_part);
+			self::setPoolsRule($client, $new_ip_address_third_part);
 		} else {
 			$new_remote_address = ServerConfig::ROUTER_REMOTE_ADDRESS_PART . '.' . $current_max_third_part . '.' . $new_sub_ip;
 			$new_remote_address_gateway = ServerConfig::ROUTER_REMOTE_ADDRESS_PART . '.' . $current_max_third_part . '.1';
@@ -76,42 +76,46 @@ class Router {
 	 * @param $data
 	 * @return array
 	 */
-	public static function createRouterAccount($data) {
-		$client = self::connect($data['ConnectNode'], $data['ConnectAccount']['username'], $data['ConnectAccount']['password']);
-		$account_name = $data['ConnectCompanyName'] . '-' . $data['ConnectNodeCity'] . '-' . crc32($data['ConnectCpeMac']);
-		$account_password = crc32($data['ConnectCpeMac']);
-		$new_remote_address = self::getNewRemoteAddress($client);
-		$remote_address  = $new_remote_address['ip'];
-		$remote_gateway = $new_remote_address['gateway'];
-		$account_type = $data['ConnectType'];
-		$account_profile = self::setProfilesRule($client, $data['ConnectDW'], $new_remote_address);
-		$account_comment = $data['ConnectCpeMac'];
+    public static function createRouterAccount($data) {
+        $router_account = $db_account = array();
+        $client = self::connect($data['ConnectNode'], $data['ConnectAccount']['username'], $data['ConnectAccount']['password']);
+        $account_name = $data['ConnectCompanyName'] . '-' . $data['ConnectNodeCity'] . '-' . crc32($data['ConnectCpeMac']);
+        $account_password = crc32($data['ConnectCpeMac']);
+        $router_account['username'] = $account_name;
+        $router_account['password'] = $account_password;
+        $router_account['server'] = $data['ConnectNode'];
 
-		$addRequest = new RouterOS\Request('/ppp/secret/add');
+        if (!self::checkRouterAccount($client, $account_name)) {
+            $new_remote_address = self::getNewRemoteAddress($client);
+            $remote_address  = $new_remote_address['ip'];
+            $remote_gateway = $new_remote_address['gateway'];
+            $account_type = $data['ConnectType'];
+            $account_profile = self::setProfilesRule($client, $data['ConnectDW'], $new_remote_address);
+            $account_comment = $data['ConnectCpeMac'];
 
-		$addRequest->setArgument('name', $account_name);
-		$addRequest->setArgument('password', $account_password);
-		$addRequest->setArgument('local-address', $remote_gateway);
-		$addRequest->setArgument('remote-address', $remote_address);
-		$addRequest->setArgument('profile', $account_profile);
-		$addRequest->setArgument('comment', $account_comment);
-		if ($client->sendSync($addRequest)->getType() !== RouterOS\Response::TYPE_FINAL) {
-			return array();
-		}
-		$router_account = $db_account = array();
-		$router_account['username'] = $account_name;
-		$router_account['password'] = $account_password;
-		$router_account['server'] = $data['ConnectNode'];
+            $addRequest = new RouterOS\Request('/ppp/secret/add');
 
-		$db_account['control_ip'] = $data['ConnectNode'];
-		$db_account['account_type'] = $account_type;
-		$db_account['account_name'] = $account_name;
-		$db_account['account_pwd'] = $account_password;
-		$db_account['company_id'] = $data['ConnectCompanyID'];
-		$db_account['cpe_id'] = $data['ConnectCpeID'];
-		AccountControl::addAccount($db_account);
-		return $router_account;
-	}
+            $addRequest->setArgument('name', $account_name);
+            $addRequest->setArgument('password', $account_password);
+            $addRequest->setArgument('local-address', $remote_gateway);
+            $addRequest->setArgument('remote-address', $remote_address);
+            $addRequest->setArgument('profile', $account_profile);
+            $addRequest->setArgument('comment', $account_comment);
+            if ($client->sendSync($addRequest)->getType() !== RouterOS\Response::TYPE_FINAL) {
+                return array();
+            } else {
+                $db_account['control_ip'] = $data['ConnectNode'];
+                $db_account['account_type'] = $account_type;
+                $db_account['account_name'] = $account_name;
+                $db_account['account_pwd'] = $account_password;
+                $db_account['company_id'] = $data['ConnectCompanyID'];
+                $db_account['cpe_id'] = $data['ConnectCpeID'];
+                AccountControl::addAccount($db_account);
+            }
+        }
+
+        return $router_account;
+    }
 
 	/**
 	 * set profile rule
@@ -138,7 +142,7 @@ class Router {
 			}
 		}
 
-		if ($pool_name) {
+		if (!self::checkProfileRule($client, $rxtx, $pool_name)) {
 			$addRequest = new RouterOS\Request('/ppp/profile/add');
 			$addRequest->setArgument('name', $rxtx);
 			$addRequest->setArgument('local-address', $remote_address['gateway']);
@@ -151,6 +155,31 @@ class Router {
 		}
 		return $rxtx;
 	}
+
+	/**
+	 * check profile rule
+	 * @param $client
+	 * @param $dw
+	 * @param $pool_name
+	 * @return bool
+	 */
+    public static function checkProfileRule($client, $dw, $pool_name) 
+    {
+        $profiles = array();
+		$responses = $client->sendSync(new RouterOS\Request('/ppp/profile/print'));
+		foreach ($responses as $response) {
+			if ($response->getType() === RouterOS\Response::TYPE_DATA) {
+				$profile_name = $response->getProperty('name');
+				$remote_address = $response->getProperty('remote-address');
+                $profiles[$remote_address][] = $profile_name;
+			}
+		}
+        $exist_profile = array_search($dw, $profiles[$pool_name]);
+        if ($exist_profile) {
+            return true;
+        }
+        return false;
+    }
 
 	/**
 	 * set pool rule
@@ -186,4 +215,26 @@ class Router {
 		}
 		return true;
 	}
+
+	/**
+	 * check router account
+	 * @param $client
+	 * @param $account_name
+	 * @return bool
+	 */
+    public static function checkRouterAccount($client, $account_name) 
+    {
+		$account_names = array();
+		$responses = $client->sendSync(new RouterOS\Request('/ppp/secret/print'));
+		foreach ($responses as $response) {
+			if ($response->getType() === RouterOS\Response::TYPE_DATA) {
+				$account_names[] = $response->getProperty('name');
+			}
+		}
+        $exist_name = array_search($account_name, $account_names);
+        if ($exist_name) {
+            return true;
+        }
+        return false;
+    }
 }

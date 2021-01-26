@@ -9,43 +9,48 @@
 
 class ServerAction {
 
-    /**
-     * client init
-     * @param $data
-     * @param $db
-     */
-    public static function clientInit($data)
+	/**
+	 * plugins network special open
+	 * @param $data
+	 * @param $cpe
+	 * @return array
+	 */
+    public static function pluginsNetworkSpecialOpen($data, $cpe)
     {
-        $device_info = Devices::find_by_mac($data['CpeMac']);
-        if (!empty($device_info)) {
-            $update_data = array();
-            $update_data['ip'] = $data['CpeIp'];
-            $update_data['status'] = ($data['CpeStatus'] == 'online') ? 1 : 0;
-			$update_data['connect_time'] = date("Y-m-d H:i:s");
-			if (Devices::update_by_mac($update_data, $data['CpeMac'])) {
-                Logger::trace("CPE update info data:" . json_encode($data), 'swoole');
-            }
-        }
-    }
+    	$send_data = array();
+		if (!self::checkDeviceExistAction($data['Action'], $cpe)) {
+			$send_data['Action'] = $data['Action'];
+			$send_data['ClientType'] = ServerConfig::CLIENT_FOR_PAAS;
+			$send_data['SecretKey'] = crc32($data['Action'] . $cpe['sncode']);
+			$send_data['SendIp'] = $cpe['ip'];
+			$send_data['ActionExt'] = SwooleServer::createUserForControl($data, $cpe);
+			if (!empty($send_data['ActionExt'])) {
+				return $send_data;
+			}
+		}
+		return array();
+	}
 
-    public static function clientGetOwnPlugins()
-    {
+	/**
+	 * checkDeviceExistAction
+	 * @param $action
+	 * @param $cpe
+	 * @return bool
+	 */
+	public static function checkDeviceExistAction($action, $cpe)
+	{
+		$exist_action = array();
+		$actions = DeviceAction::find_all_by_device_id($cpe['id']);
+		if ($actions) {
+			foreach ($actions as $action_item) {
+				$exist_action[] = $action_item['action_name'];
+			}
+		}
 
-    }
-
-    public static function clientGetOwnWebside()
-    {
-
-    }
-
-    public static function clientGetOwnNode()
-    {
-
-    }
-
-    public static function pluginsNetworkSpecialOpen()
-    {
-
-    }
+		if (in_array($action, $exist_action)) {
+			return true;
+		}
+		return false;
+	}
 
 }

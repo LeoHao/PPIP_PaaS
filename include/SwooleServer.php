@@ -27,7 +27,7 @@ class SwooleServer {
     /**
      * pid path
      */
-    public $pidFile;
+    public $pid;
 
     /**
      * @var $worker_num
@@ -100,12 +100,11 @@ class SwooleServer {
      */
     public function onSwooleStart($server)
     {
-        $this->setProcessName('SwooleMaster');
+        $this->setProcessName('PPIP_TCP_MASTER');
         $debug = debug_backtrace();
-        $this->pidFile =  __DIR__ . "/temp/" . str_replace("/" , "_" , $debug[count($debug) - 1] ["file"] . ".pid" );
         $pid = [$server->master_pid , $server->manager_pid];
-        file_put_contents($this->pidFile , implode(",", $pid));
-    }
+        $this->pid = implode("|", $pid);
+	}
 
     /**
      * @param $server
@@ -128,22 +127,22 @@ class SwooleServer {
      * 该函数具有进程隔离性 ,
      * {$this} 对象从 swoole_server->start() 开始前设置的属性全部继承
      * {$this} 对象在 onSwooleStart,onSwooleManagerStart中设置的对象属于不同的进程中.
-     * 因此这里的pidFile虽然在onSwooleStart中设置了，但是是不同的进程，所以找不到该值.
-     * @param \swoole_server $server
+     * 因此这里的pid虽然在onSwooleStart中设置了，但是是不同的进程，所以找不到该值.
+     * @param swoole_server $server
      * @param int            $worker_id
      */
     public function onSwooleWorkerStart(swoole_server $server, $worker_id)
     {
         if($this->isTaskProcess($server))
         {
-            $this->setProcessName('SwooleTask');
+            $this->setProcessName('PPIP_TCP_TASK');
         }
         else{
-            $this->setProcessName('SwooleWorker');
+            $this->setProcessName('PPIP_TCP_WORKER');
         }
         $debug = debug_backtrace();
-        $this->pidFile = __DIR__ . "/temp/" . str_replace("/" , "_" , $debug[count($debug)-1] ["file"] . ".pid" );
-        file_put_contents($this->pidFile , ",{$worker_id}" , FILE_APPEND);
+		$pid = [$server->master_pid , $server->manager_pid, $worker_id];
+		$this->pid = implode("|", $pid);
     }
 
     public function onSwooleWorkerStop($server,$worker_id)
@@ -180,7 +179,6 @@ class SwooleServer {
      */
     public function onSwoolePipeMessage($server , $src_worker_id,$message)
     {
-
     }
 
     /**
@@ -203,7 +201,7 @@ class SwooleServer {
      */
     public function onSwooleManagerStart()
     {
-        $this->setProcessName('SwooleManager');
+        $this->setProcessName('PPIP_TCP_MANAGER');
     }
 
     /**
@@ -310,10 +308,10 @@ class SwooleServer {
         $this->table->set($fd, $data);
     }
 
-    public function createUserForControl($data, $cpe)
+    public static function createUserForControl($data, $cpe)
     {
         $account_data = array();
-        $router_data = $this->setAccountNeedData($data, $cpe);
+        $router_data = self::setAccountNeedData($data, $cpe);
         if ($router_data) {
             $account_data['ConnectType'] = ServerConfig::SPECIAL_CONNETCT_L2TP;
             $account_data['NodeIp'] = $router_data['server'];
@@ -323,13 +321,25 @@ class SwooleServer {
         return $account_data;
     }
 
+	/**
+	 * send data
+	 * @param $server
+	 * @param $fd
+	 * @param $data
+	 */
+    public function serverSendData($server, $fd, $data)
+	{
+		if (!empty($data)) {
+			$server->send($fd, json_encode($data));
+		}
+	}
     /**
      * set router account need data
      * @param $data
      * @param $cpe
      * @return mixed
      */
-    public function setAccountNeedData($data, $cpe) 
+    public static function setAccountNeedData($data, $cpe)
     {
         $router_account = array();
         $create_account_data = array();

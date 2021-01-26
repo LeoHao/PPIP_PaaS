@@ -54,7 +54,7 @@ class TcpServer extends SwooleServer{
             if (isset($data['ClientType']) && $data['ClientType'] == ServerConfig::CLIENT_FOR_SAAS) {
                 $send_data = $this->disposeSaasRequestData($data);
                 $fd_info = $this->table->get($send_data['SendIp']);
-                $server->send($fd_info['fd'] , json_encode($send_data));
+                $this->serverSendData($server, $fd_info['fd'], $send_data);
                 Logger::trace("SaaS connect fd:" . $fd . " | status:online | reactorid:" . $reactorId . " | request_ip:" . $data['ClientIP'] . " | response_ip:" . $data['CpeIP'] . " | action:" . $data['Action'], 'swoole');
             }
 
@@ -62,8 +62,8 @@ class TcpServer extends SwooleServer{
                 $send_data = $this->disposeCpeRequestData($data, $fd);
                 if (!empty($send_data)) {
                     $fd_info = $this->table->get($send_data['SendIp']);
-                    $server->send($fd_info['fd'] , json_encode($send_data));
-                    Logger::trace("CPE connect fd:" . $fd . " | status:exec_done | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " exec_result:" . $data['exec_result'], 'swoole');
+					$this->serverSendData($server, $fd_info['fd'], $send_data);
+					Logger::trace("CPE connect fd:" . $fd . " | status:exec_done | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " exec_result:" . $data['exec_result'], 'swoole');
                 }
             }
         }
@@ -89,12 +89,13 @@ class TcpServer extends SwooleServer{
             $send_data['SendIp'] = $data['ClientIp'];
         }
         */
+			$function_name = $this->getActionFunctionName($data['Action']);
             $cpe_info = Devices::find_by_mac($data['CpeMac']);
-            $send_data['Action'] = $data['Action'];
-            $send_data['ClientType'] = ServerConfig::CLIENT_FOR_PAAS;
-            $send_data['SecretKey'] = crc32($data['Action'] . $cpe_info['sncode']);
-            $send_data['ActionExt'] = $this->createUserForControl($data, $cpe_info);
-            $send_data['SendIp'] = $cpe_info['ip'];
+			if (!$cpe_info['status']) {
+				$send_data = ServerAction::$function_name($data, $cpe_info);
+			} else {
+				Logger::trace("CPE status offline for mac:" .$data['CpeMac'] , 'swoole');
+			}
         }
         return $send_data;
     }
@@ -112,14 +113,13 @@ class TcpServer extends SwooleServer{
 		$this->client_fd_map[$fd] = $data['CpeMac'];
 		$this->client_mac_data_map[$data['CpeMac']]['fd'] = $fd;
 		$function_name = $this->getActionFunctionName($data['Action']);
-        if (in_array($data['Action'], ServerConfig::$cpe_own_action)) {
-            $data = ServerAction::$function_name($data);
+		$allow_action = array_merge(ServerConfig::$cpe_own_action, ServerConfig::$server_own_action);
+        if (in_array($data['Action'], $allow_action)) {
+            $data = CpeAction::$function_name($data);
             if (!empty($data)) {
                 $send_data['SendIp'] = $data['ClientIP'];
                 $send_data['ResultData'] = $data;
             }
-        } elseif (in_array($data['Action'], ServerConfig::$server_own_action)) {
-            $data = ServerAction::$function_name($data);
         }
         return $send_data;
     }
