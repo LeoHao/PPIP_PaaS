@@ -56,7 +56,7 @@ class TcpServer extends SwooleServer{
 					$send_data = $this->disposeSaasRequestData($data);
 					$fd_info = $this->table->get($send_data['SendIp']);
 					$this->serverSendData($server, $fd_info['fd'], $send_data);
-					Logger::trace("SaaS connect fd:" . $fd . " | status:online | reactorid:" . $reactorId . " | request_ip:" . $data['ClientIP'] . " | response_ip:" . $data['CpeIP'] . " | action:" . $data['Action'], 'swoole');
+					Logger::trace("SaaS connect fd:" . $fd . " | status:online | reactorid:" . $reactorId . " | action:" . $data['Action'], 'swoole');
 				}
 
 				if ($data['ClientType'] == ServerConfig::CLIENT_FOR_CPE) {
@@ -92,7 +92,7 @@ class TcpServer extends SwooleServer{
         */
 		$function_name = $this->getActionFunctionName($data['Action']);
 		$cpe_info = Devices::find_by_mac($data['CpeMac']);
-		if (!$cpe_info['status']) {
+		if ($cpe_info['status']) {
 			$send_data = ServerAction::$function_name($data, $cpe_info);
 		} else {
 			Logger::trace("CPE status offline for mac:" .$data['CpeMac'] , 'swoole');

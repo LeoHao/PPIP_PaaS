@@ -90,7 +90,7 @@ class Router {
             $remote_address  = $new_remote_address['ip'];
             $remote_gateway = $new_remote_address['gateway'];
             $account_type = $data['ConnectType'];
-            $account_profile = self::setProfilesRule($client, $data['ConnectDW'], $new_remote_address);
+            $account_profile = self::setProfilesRule($client, $data['ConnectBW'], $new_remote_address);
             $account_comment = $data['ConnectCpeMac'];
 
             $addRequest = new RouterOS\Request('/ppp/secret/add');

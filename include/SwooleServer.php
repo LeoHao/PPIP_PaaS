@@ -351,7 +351,7 @@ class SwooleServer {
             $redirect_node_id = explode(",", $dest['node_id']);
             $control_node_id = $redirect_node_id[0];
             $control_node = Nodes::find_by_id($control_node_id);
-            $create_account_data['ConnectDW'] = $action_ext['dw'];
+            $create_account_data['ConnectBW'] = $action_ext['bw'];
             $create_account_data['ConnectCpeMac'] = $cpe['mac'];
             $create_account_data['ConnectCpeID'] = $cpe['id'];
             $create_account_data['ConnectCompanyName'] = $data['CompanyName'];

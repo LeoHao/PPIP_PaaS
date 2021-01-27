@@ -726,7 +726,6 @@ class Validator {
 		$action = $data['Action'];
 		$client_type = $data['ClientType'];
 		if ($client_type == ServerConfig::CLIENT_FOR_SAAS) {
-			echo 123;
 			if (!in_array($action, ServerConfig::$server_own_action)) {
 				return false;
 			}
