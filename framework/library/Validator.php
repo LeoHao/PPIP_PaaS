@@ -708,5 +708,51 @@ class Validator {
         }
         return true;
     }
+
+	/**
+	 * check request data
+	 * @param $data
+	 * @return bool
+	 */
+    public static function checkRequestData($data)
+	{
+		if (!$data['Action']) {
+			return false;
+		}
+		if (!$data['ClientType'])
+		{
+			return false;
+		}
+		$action = $data['Action'];
+		$client_type = $data['ClientType'];
+		if ($client_type == ServerConfig::CLIENT_FOR_SAAS) {
+			echo 123;
+			if (!in_array($action, ServerConfig::$server_own_action)) {
+				return false;
+			}
+		} elseif ($client_type == ServerConfig::CLIENT_FOR_CPE) {
+			$allow_action = array_merge(ServerConfig::$cpe_own_action, ServerConfig::$server_own_action);
+			if (!in_array($action, $allow_action)) {
+				return false;
+			}
+		} else {
+			return false;
+		}
+
+
+		$validate_rule = ServerConfig::$request_data[$client_type][$action];
+		foreach ($validate_rule as $key_name =>$check_key) {
+			if (is_array($check_key)) {
+				foreach ($check_key as $check_item_key) {
+					if (empty($data[$key_name][$check_item_key])) {
+						return false;
+					}
+				}
+			} elseif (empty($data[$check_key])) {
+				return false;
+			}
+		}
+		return true;
+	}
 }
 

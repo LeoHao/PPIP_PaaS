@@ -50,34 +50,35 @@ class TcpServer extends SwooleServer{
     public function onSwooleReceive($server,$fd,$reactorId, $data)
     {
         $data = json_decode($data, true);
-        if($this->validateSecretKey($data)) {
-            if (isset($data['ClientType']) && $data['ClientType'] == ServerConfig::CLIENT_FOR_SAAS) {
-                $send_data = $this->disposeSaasRequestData($data);
-                $fd_info = $this->table->get($send_data['SendIp']);
-                $this->serverSendData($server, $fd_info['fd'], $send_data);
-                Logger::trace("SaaS connect fd:" . $fd . " | status:online | reactorid:" . $reactorId . " | request_ip:" . $data['ClientIP'] . " | response_ip:" . $data['CpeIP'] . " | action:" . $data['Action'], 'swoole');
-            }
-
-            if (isset($data['ClientType']) && $data['ClientType'] == ServerConfig::CLIENT_FOR_CPE) {
-                $send_data = $this->disposeCpeRequestData($data, $fd);
-                if (!empty($send_data)) {
-                    $fd_info = $this->table->get($send_data['SendIp']);
+		if(Validator::checkRequestData($data)) {
+			if($this->validateSecretKey($data)) {
+				if ($data['ClientType'] == ServerConfig::CLIENT_FOR_SAAS) {
+					$send_data = $this->disposeSaasRequestData($data);
+					$fd_info = $this->table->get($send_data['SendIp']);
 					$this->serverSendData($server, $fd_info['fd'], $send_data);
-					Logger::trace("CPE connect fd:" . $fd . " | status:exec_done | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " exec_result:" . $data['exec_result'], 'swoole');
-                }
-            }
-        }
-    }
+					Logger::trace("SaaS connect fd:" . $fd . " | status:online | reactorid:" . $reactorId . " | request_ip:" . $data['ClientIP'] . " | response_ip:" . $data['CpeIP'] . " | action:" . $data['Action'], 'swoole');
+				}
 
-    /**
-     * dispose saas request data
-     * @param $data
-     * @return array $send_data
-     */
-    public function disposeSaasRequestData($data)
+				if ($data['ClientType'] == ServerConfig::CLIENT_FOR_CPE) {
+					$send_data = $this->disposeCpeRequestData($data, $fd);
+					if (!empty($send_data)) {
+						$fd_info = $this->table->get($send_data['SendIp']);
+						$this->serverSendData($server, $fd_info['fd'], $send_data);
+						Logger::trace("CPE connect fd:" . $fd . " | status:exec_done | reactorid:" . $reactorId . " | request_ip:" . $data['ip'] . " exec_result:" . $data['exec_result'], 'swoole');
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * dispose saas request data
+	 * @param $data
+	 * @return array $send_data
+	 */
+	public function disposeSaasRequestData($data)
     {
         $send_data = array();
-        if (in_array($data['Action'],ServerConfig::$server_own_action)) {
         /*
         if ($this->checkRequestType($data['Action'])) {
              * $cpe_exec_info = $redis->get($data['CpeIp']);
@@ -89,14 +90,13 @@ class TcpServer extends SwooleServer{
             $send_data['SendIp'] = $data['ClientIp'];
         }
         */
-			$function_name = $this->getActionFunctionName($data['Action']);
-            $cpe_info = Devices::find_by_mac($data['CpeMac']);
-			if (!$cpe_info['status']) {
-				$send_data = ServerAction::$function_name($data, $cpe_info);
-			} else {
-				Logger::trace("CPE status offline for mac:" .$data['CpeMac'] , 'swoole');
-			}
-        }
+		$function_name = $this->getActionFunctionName($data['Action']);
+		$cpe_info = Devices::find_by_mac($data['CpeMac']);
+		if (!$cpe_info['status']) {
+			$send_data = ServerAction::$function_name($data, $cpe_info);
+		} else {
+			Logger::trace("CPE status offline for mac:" .$data['CpeMac'] , 'swoole');
+		}
         return $send_data;
     }
 
@@ -113,14 +113,11 @@ class TcpServer extends SwooleServer{
 		$this->client_fd_map[$fd] = $data['CpeMac'];
 		$this->client_mac_data_map[$data['CpeMac']]['fd'] = $fd;
 		$function_name = $this->getActionFunctionName($data['Action']);
-		$allow_action = array_merge(ServerConfig::$cpe_own_action, ServerConfig::$server_own_action);
-        if (in_array($data['Action'], $allow_action)) {
-            $data = CpeAction::$function_name($data);
-            if (!empty($data)) {
-                $send_data['SendIp'] = $data['ClientIP'];
-                $send_data['ResultData'] = $data;
-            }
-        }
+		$data = CpeAction::$function_name($data);
+		if (!empty($data)) {
+			$send_data['SendIp'] = $data['ClientIP'];
+			$send_data['ResultData'] = $data;
+		}
         return $send_data;
     }
 
@@ -129,31 +126,26 @@ class TcpServer extends SwooleServer{
      * @param $data
      * @return bool
      */
-    public function validateSecretKey($data) {
-        if ($data['SecretKey'] && $data['Action']) {
-            if ($data['ClientType'] == ServerConfig::CLIENT_FOR_SAAS) {
-                $validate_str = $data['Action'] . ServerConfig::SNCODE_FOR_SAAS;
-                $validate_key = crc32($validate_str);
-                if ($validate_key != $data['SecretKey']) {
-                    Logger::error("SaaS invalid Secret key | data:" . json_encode($data), 'swoole');
-                    return false;
-                }
-            } elseif ($data['ClientType'] == ServerConfig::CLIENT_FOR_CPE) {
-                $cpe_info = Devices::find_by_mac($data['CpeMac']);
-                $cpe_sncode = $cpe_info['sncode'];
-                $validate_str = $data['Action'] . $cpe_sncode;
-                $validate_key = crc32($validate_str);
-                if ($validate_key != $data['SecretKey']) {
-                    Logger::error("CPE invalid Secret key | server_cpe_sncode: " . $cpe_sncode. " | data:" . json_encode($data), 'swoole');
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            Logger::error("CPE or SaaS error params | data:" . json_encode($data), 'swoole');
-            return false;
-        }
-    }
+	public function validateSecretKey($data) {
+		if ($data['ClientType'] == ServerConfig::CLIENT_FOR_SAAS) {
+			$validate_str = $data['Action'] . ServerConfig::SNCODE_FOR_SAAS;
+			$validate_key = crc32($validate_str);
+			if ($validate_key != $data['SecretKey']) {
+				Logger::error("SaaS invalid Secret key | data:" . json_encode($data), 'swoole');
+				return false;
+			}
+		} elseif ($data['ClientType'] == ServerConfig::CLIENT_FOR_CPE) {
+			$cpe_info = Devices::find_by_mac($data['CpeMac']);
+			$cpe_sncode = $cpe_info['sncode'];
+			$validate_str = $data['Action'] . $cpe_sncode;
+			$validate_key = crc32($validate_str);
+			if ($validate_key != $data['SecretKey']) {
+				Logger::error("CPE invalid Secret key | server_cpe_sncode: " . $cpe_sncode. " | data:" . json_encode($data), 'swoole');
+				return false;
+			}
+		}
+		return true;
+	}
 
     /**
      * check request type

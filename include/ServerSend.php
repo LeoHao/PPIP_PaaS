@@ -26,7 +26,11 @@ class ServerSend {
             'CpeIP' => '192.168.3.113',
             'CpeMac' => '00:F1:F3:18:86:43',
             'SecretKey' => crc32("plugins_network_special_open" . "this is saas sncode"),
-            'ActionExt' => '{"node_id":1,"dest_id":7,"dw":52}'
+            'ActionExt' => array(
+            	'node_id' => 1,
+				'dest_id' => 7,
+				'dw'      => 52
+			)
         );
         $client->send(json_encode($data));
     }

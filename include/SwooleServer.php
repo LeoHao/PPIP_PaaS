@@ -343,7 +343,7 @@ class SwooleServer {
     {
         $router_account = array();
         $create_account_data = array();
-        $action_ext = json_decode($data['ActionExt'], true);
+        $action_ext = $data['ActionExt'];
         $node_id = $action_ext['node_id'];
         $dest_id = $action_ext['dest_id'];
         $nodes = Nodes::find_by_id($node_id);

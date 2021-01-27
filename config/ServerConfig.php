@@ -153,5 +153,9 @@ class ServerConfig {
         'username' => 'haojianping',
         'password' => 'Ha@jian!@#ping@!!!'
     );
+
+    public static $request_data = array(
+		self::CLIENT_FOR_SAAS => array('plugins_network_special_open' => array('Action', 'ClientType', 'ClientIP', 'CpeIP', 'CpeMac', 'SecretKey', 'ActionExt' => array('node_id', 'dest_id', 'dw'))),
+		self::CLIENT_FOR_CPE => array('ClientType', 'Action', 'Sncode', 'SecretKey', 'CpeName', 'CpeIp', 'CpeMac', 'CpeStatus')
+	);
 }
-?>
