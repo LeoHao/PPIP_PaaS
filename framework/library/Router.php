@@ -113,7 +113,9 @@ class Router {
                 $db_account['cpe_id'] = $data['ConnectCpeID'];
                 AccountControl::addAccount($db_account);
             }
-        }
+        } else {
+			$router_account['remote_address'] = self::getRouterRemoteAddress($client, $account_name);
+		}
 
         return $router_account;
     }
@@ -238,4 +240,24 @@ class Router {
         }
         return false;
     }
+
+	/**
+	 * getRouterRemoteAddress
+	 * @param $client
+	 * @param $account_name
+	 * @return mixed
+	 */
+	public static function getRouterRemoteAddress($client, $account_name)
+	{
+		$remote_address = '';
+		$account_names = array();
+		$responses = $client->sendSync(new RouterOS\Request('/ppp/secret/print'));
+		foreach ($responses as $response) {
+			if ($response->getType() === RouterOS\Response::TYPE_DATA) {
+				$account_names[$response->getProperty('name')] = $response->getProperty('remote-address');
+			}
+		}
+		$remote_address = $account_names[$account_name];
+		return $remote_address;
+	}
 }
