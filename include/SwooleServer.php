@@ -222,14 +222,6 @@ class SwooleServer {
      */
     public function onSwooleConnect($server ,$fd ,$reactorId)
     {
-        $fd_info = $server->getClientInfo($fd);
-        $client_ip = $fd_info['remote_ip'];
-        $exist = $this->table->exist($fd);
-        if (!$exist) {
-            $redis_data = ['fd' => $fd, 'ip' => $client_ip];
-            $this->table->set($client_ip, $redis_data);
-            Logger::trace("newconnect fd:" . $fd . " | status:online | reactorid:" . $reactorId, 'swoole');
-        }
         echo "#connected\n";
     }
 

@@ -57,13 +57,13 @@ class ServerConfig {
                 'type' => swoole_table::TYPE_INT,
                 'size' => 255
             ),
-            'ClientIP' => array(
+            'Sncode' => array(
                 'type' => swoole_table::TYPE_STRING,
-                'size' => 20
+                'size' => 100
             ),
             'CpeIP' => array(
                 'type' => swoole_table::TYPE_STRING,
-                'size' => 20
+                'size' => 15
             ),
             'ClientMac' => array(
                 'type' => swoole_table::TYPE_STRING,

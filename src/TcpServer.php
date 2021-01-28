@@ -108,15 +108,23 @@ class TcpServer extends SwooleServer{
      */
     public function disposeCpeRequestData($data, $fd)
     {
+		$client_ip = $data['CpeIp'];
+		$exist = $this->table->exist($fd);
+		if (!$exist) {
+			$redis_data = ['fd' => $fd, 'CpeIP' => $client_ip];
+			$this->table->set($client_ip, $redis_data);
+			Logger::trace("newconnect fd:" . $fd . " | status:online ", 'swoole');
+		}
+
         $send_data = array();
 		$this->client_mac_map[$data['CpeMac']] = $fd;
 		$this->client_fd_map[$fd] = $data['CpeMac'];
 		$this->client_mac_data_map[$data['CpeMac']]['fd'] = $fd;
 		$function_name = $this->getActionFunctionName($data['Action']);
-		$data = CpeAction::$function_name($data);
-		if (!empty($data)) {
-			$send_data['SendIp'] = $data['ClientIP'];
-			$send_data['ResultData'] = $data;
+		$action_data = CpeAction::$function_name($data);
+		if (!empty($action_data)) {
+			$send_data['SendIp'] = $data['CpeIp'];
+			$send_data['ResultData'] = $action_data;
 		}
         return $send_data;
     }
