@@ -28,6 +28,20 @@ class CpeAction {
 		}
 	}
 
+	/**
+	 * pluginsNetworkSpecialOpen
+	 * @param $data
+	 */
+	public static function pluginsNetworkSpecialOpen($data)
+	{
+		$device_info = Devices::find_by_mac($data['CpeMac']);
+		if (!empty($device_info)) {
+			$plugin['device_id'] = $device_info['id'];
+			$plugin['cpe_id'] = $data['Action'];
+			DeviceAction::openPlugin($plugin);
+		}
+	}
+
 	public static function clientGetOwnPlugins()
 	{
 
@@ -42,5 +56,4 @@ class CpeAction {
 	{
 
 	}
-
 }

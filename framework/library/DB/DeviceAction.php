@@ -57,6 +57,15 @@ class DeviceAction extends Table {
 	}
 
 	/**
+	 * openPlugin
+	 * @param $data
+	 */
+	public static function openPlugin($data)
+	{
+		$table_info = Table::load('ppip', self::$table_name, self::$properties);
+		$table_info->insert($data);
+	}
+	/**
 	 * update_by_mac
 	 * @param $data
 	 * @param $mac_address
