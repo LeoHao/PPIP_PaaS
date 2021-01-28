@@ -88,7 +88,8 @@ class Router {
         if (!self::checkRouterAccount($client, $account_name)) {
             $new_remote_address = self::getNewRemoteAddress($client);
             $remote_address  = $new_remote_address['ip'];
-            $remote_gateway = $new_remote_address['gateway'];
+			$router_account['remote_address'] = $new_remote_address['ip'];
+			$remote_gateway = $new_remote_address['gateway'];
             $account_type = $data['ConnectType'];
             $account_profile = self::setProfilesRule($client, $data['ConnectBW'], $new_remote_address);
             $account_comment = $data['ConnectCpeMac'];

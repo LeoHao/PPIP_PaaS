@@ -309,7 +309,8 @@ class SwooleServer {
             $account_data['NodeIp'] = $router_data['server'];
             $account_data['AccountName'] = $router_data['username'];
             $account_data['AccountPwd'] = $router_data['password'];
-        }
+			$account_data['AccountRemoteAddress'] = $router_data['remote_address'];
+		}
         return $account_data;
     }
 
