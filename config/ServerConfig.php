@@ -156,7 +156,8 @@ class ServerConfig {
 
     public static $request_data = array(
 		self::CLIENT_FOR_SAAS => array(
-			'plugins_network_special_open' => array('Action', 'ClientType', 'CpeMac', 'SecretKey', 'ActionExt' => array('node_id', 'dest_id', 'bw'))
+			'plugins_network_special_open' => array('Action', 'ClientType', 'CpeMac', 'SecretKey', 'ActionExt' => array('node_id', 'dest_id', 'bw')),
+			'plugins_network_webside_open' => array('Action', 'ClientType', 'CpeMac', 'SecretKey', 'ActionExt' => array('node_id', 'dest_id', 'bw', 'domain'))
 		),
 		self::CLIENT_FOR_CPE => array(
 			'client_init' => array('ClientType', 'Action', 'Sncode', 'SecretKey', 'CpeName', 'CpeIp', 'CpeMac', 'CpeStatus'),

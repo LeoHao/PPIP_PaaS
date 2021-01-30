@@ -37,7 +37,21 @@ class CpeAction {
 		$device_info = Devices::find_by_mac($data['CpeMac']);
 		if (!empty($device_info)) {
 			$plugin['device_id'] = $device_info['id'];
-			$plugin['cpe_id'] = $data['Action'];
+			$plugin['action_name'] = $data['Action'];
+			DeviceAction::openPlugin($plugin);
+		}
+	}
+
+	/**
+	 * plugins_network_webside_open
+	 * @param $data
+	 */
+	public static function plugins_network_webside_open($data)
+	{
+		$device_info = Devices::find_by_mac($data['CpeMac']);
+		if (!empty($device_info)) {
+			$plugin['device_id'] = $device_info['id'];
+			$plugin['action_name'] = $data['Action'];
 			DeviceAction::openPlugin($plugin);
 		}
 	}
