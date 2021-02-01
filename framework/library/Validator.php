@@ -694,6 +694,23 @@ class Validator {
         return self::verify($data, $options);
     }
 
+	/**
+	 * getDomainName
+	 * @param $domain
+	 * @return string|string[]|null
+	 */
+    public static function getDomainName($domain)
+	{
+		$domain = preg_replace('/www./', '', $domain);
+		foreach (ServerConfig::$domain_Suffix as $suffix) {
+			$domain = preg_replace('/.' . $suffix . '/', '', $domain);
+		}
+		if (in_array($domain, ServerConfig::$webeside_turbo)) {
+			return $domain;
+		}
+		return '';
+	}
+
     /**
      * 判断ip是否为真实的公网ip
      * check ip is true wan

@@ -31,7 +31,7 @@ class ServerAction {
 		return array();
 	}
 
-	public static function plugins_network_webside_open($data, $cpe)
+	public static function pluginsNetworkWebsideOpen($data, $cpe)
 	{
 		$send_data = array();
 		if (!self::checkDeviceExistAction($data['Action'], $cpe)) {
@@ -40,6 +40,11 @@ class ServerAction {
 			$send_data['SecretKey'] = crc32($data['Action'] . $cpe['sncode']);
 			$send_data['SendIp'] = $cpe['ip'];
 			$send_data['ActionExt'] = SwooleServer::createUserForControl($data, $cpe);
+			$domain = Validator::getDomainName($data['ActionExt']['domain']);
+			if (!$domain) {
+				return array();
+			}
+			$send_data['ActionExt']['Domain'] = $domain;
 			if (!empty($send_data['ActionExt'])) {
 				return $send_data;
 			}

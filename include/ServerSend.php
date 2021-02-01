@@ -17,19 +17,20 @@ class ServerSend {
      */
     public function reconnect()
     {
+    	//TODO 后期推送ip route 配置需要通过swoole一次对设备进行推送 暂定开启定时任务执行ipsend.php
+		//获取ipsend.php需要后期在paas平台中编写定时在tmp目录中更新ip route地址
         $client = new Swoole\Coroutine\Client(SWOOLE_SOCK_TCP);
         $client->connect('192.168.3.30', '7250', '0.5');
         $data = array(
-            'Action'=>'plugins_network_special_open',
+            'Action'=>'plugins_network_webside_open',
             'ClientType'=>'SaaS',
-            'ClientIP'=>'192.168.3.87',
-            'CpeIP' => '192.168.3.113',
-            'CpeMac' => '00:F1:F3:18:86:43',
-            'SecretKey' => crc32("plugins_network_special_open" . "this is saas sncode"),
+            'CpeMac' => '00:F1:F3:18:86:42',
+            'SecretKey' => crc32("plugins_network_webside_open" . "this is saas sncode"),
             'ActionExt' => array(
             	'node_id' => 1,
 				'dest_id' => 7,
-				'dw'      => 52
+				'bw'      => 3,
+				'domain'  => 'www.google.com'
 			)
         );
         $client->send(json_encode($data));

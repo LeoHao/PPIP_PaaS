@@ -37,6 +37,9 @@ class ServerConfig {
 
 	const ROUTER_PREFIX_NAME = 'pool';
 
+	public static $domain_Suffix = array('com', 'org');
+
+	public static $webeside_turbo = array('google', 'twitter', 'facebook', 'youtube');
 
 	public static $swoole_server_table = array(
         'table_size' => 65536,
@@ -104,6 +107,7 @@ class ServerConfig {
         'heartbeat_check_interval' => 360,
         'heartbeat_idle_time'      => 600,
         'max_connection' => 500,
+        'package_max_length' => 2 * 1024 * 1024,
         'log_file' => ROOT_PATH . '/logs/swoole/swoole.log'
     );
 
